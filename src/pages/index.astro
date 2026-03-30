@@ -48,7 +48,7 @@ const categories = [...new Set(sorted.map(s => s.data.category))];
                   {seminar.data.description}
                 </p>
               )}
-              <div class="flex flex-wrap items-center gap-2 mt-3">
+              <div class="hidden sm:flex flex-wrap items-center gap-2 mt-3">
                 <span class="px-3 py-1 rounded-full text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
                   {seminar.data.category}
                 </span>
