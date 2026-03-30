@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>바이브 코딩 세미나</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #0a0a0a;
+    color: #e0e0e0;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  .slide {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    padding: 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide.active { display: flex; flex-direction: column; justify-content: center; }
+
+  /* Slide backgrounds */
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -30%;
+    width: 800px;
+    height: 800px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Title slide */
+  .slide-title {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+  }
+
+  .slide-title h1 {
+    font-size: 4.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #818cf8, #c084fc, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 20px;
+    letter-spacing: -2px;
+  }
+
+  .slide-title .subtitle {
+    font-size: 1.6rem;
+    color: #9ca3af;
+    font-weight: 300;
+    margin-bottom: 50px;
+  }
+
+  .slide-title .meta {
+    font-size: 1rem;
+    color: #6b7280;
+  }
+
+  /* Content slides */
+  h2 {
+    font-size: 2.6rem;
+    font-weight: 700;
+    margin-bottom: 40px;
+    color: #f3f4f6;
+    position: relative;
+    padding-bottom: 15px;
+  }
+
+  h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, #818cf8, #c084fc);
+    border-radius: 2px;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    color: #a5b4fc;
+    margin-bottom: 15px;
+    font-weight: 500;
+  }
+
+  p, li {
+    font-size: 1.35rem;
+    line-height: 1.8;
+    color: #d1d5db;
+  }
+
+  ul { list-style: none; padding: 0; }
+
+  ul li {
+    padding: 10px 0 10px 35px;
+    position: relative;
+  }
+
+  ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #818cf8, #c084fc);
+  }
+
+  .highlight {
+    color: #a5b4fc;
+    font-weight: 500;
+  }
+
+  .quote-box {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(192, 132, 252, 0.05));
+    border-left: 4px solid #818cf8;
+    padding: 30px 35px;
+    border-radius: 0 12px 12px 0;
+    margin: 20px 0;
+    font-size: 1.4rem;
+    font-style: italic;
+    color: #c4b5fd;
+  }
+
+  .quote-box .author {
+    display: block;
+    margin-top: 15px;
+    font-style: normal;
+    font-size: 1rem;
+    color: #9ca3af;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    flex: 1;
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .code-block {
+    background: #1e1e2e;
+    border: 1px solid #313244;
+    border-radius: 12px;
+    padding: 25px 30px;
+    font-family: 'Fira Code', monospace;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #cdd6f4;
+    margin: 15px 0;
+    position: relative;
+    overflow-x: auto;
+  }
+
+  .code-block .prompt {
+    color: #a6e3a1;
+  }
+
+  .code-block .comment {
+    color: #6c7086;
+  }
+
+  .code-block .cmd {
+    color: #89b4fa;
+  }
+
+  .code-block .flag {
+    color: #f9e2af;
+  }
+
+  .code-block .string {
+    color: #a6e3a1;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin: 5px 8px 5px 0;
+  }
+
+  .tag-blue { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+  .tag-purple { background: rgba(192, 132, 252, 0.15); color: #d8b4fe; border: 1px solid rgba(192, 132, 252, 0.3); }
+  .tag-pink { background: rgba(244, 114, 182, 0.15); color: #f9a8d4; border: 1px solid rgba(244, 114, 182, 0.3); }
+  .tag-green { background: rgba(74, 222, 128, 0.15); color: #86efac; border: 1px solid rgba(74, 222, 128, 0.3); }
+  .tag-yellow { background: rgba(250, 204, 21, 0.15); color: #fde68a; border: 1px solid rgba(250, 204, 21, 0.3); }
+  .tag-red { background: rgba(248, 113, 113, 0.15); color: #fca5a5; border: 1px solid rgba(248, 113, 113, 0.3); }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    margin-top: 10px;
+  }
+
+  .card {
+    background: linear-gradient(135deg, rgba(30, 30, 50, 0.8), rgba(20, 20, 40, 0.6));
+    border: 1px solid #2a2a4a;
+    border-radius: 16px;
+    padding: 30px;
+    transition: transform 0.2s;
+  }
+
+  .card-icon {
+    font-size: 2.2rem;
+    margin-bottom: 15px;
+  }
+
+  .card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+
+  .card p {
+    font-size: 1.05rem;
+    color: #9ca3af;
+    line-height: 1.6;
+  }
+
+  .flow-chart {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin: 30px 0;
+    flex-wrap: wrap;
+  }
+
+  .flow-step {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(192, 132, 252, 0.1));
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 12px;
+    padding: 18px 28px;
+    font-size: 1.15rem;
+    font-weight: 500;
+    color: #c4b5fd;
+    text-align: center;
+  }
+
+  .flow-arrow {
+    font-size: 1.5rem;
+    color: #6366f1;
+  }
+
+  .big-number {
+    font-size: 3.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #818cf8, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 5px;
+  }
+
+  .warning-box {
+    background: rgba(250, 204, 21, 0.08);
+    border-left: 4px solid #fbbf24;
+    padding: 25px 30px;
+    border-radius: 0 12px 12px 0;
+    margin: 15px 0;
+  }
+
+  .warning-box li::before {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+  }
+
+  .pros-cons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+
+  .pros h3 { color: #86efac; }
+  .cons h3 { color: #fca5a5; }
+
+  .pros li::before { background: #4ade80 !important; }
+  .cons li::before { background: #f87171 !important; }
+
+  /* Navigation */
+  .nav {
+    position: fixed;
+    bottom: 30px;
+    right: 40px;
+    display: flex;
+    gap: 12px;
+    z-index: 100;
+  }
+
+  .nav button {
+    background: rgba(99, 102, 241, 0.2);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    color: #a5b4fc;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .nav button:hover {
+    background: rgba(99, 102, 241, 0.4);
+  }
+
+  .slide-counter {
+    position: fixed;
+    bottom: 35px;
+    left: 40px;
+    color: #4b5563;
+    font-size: 0.95rem;
+    z-index: 100;
+  }
+
+  /* Progress bar */
+  .progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #818cf8, #c084fc, #f472b6);
+    transition: width 0.3s;
+    z-index: 100;
+  }
+
+  .step-list {
+    counter-reset: step;
+    list-style: none;
+    padding: 0;
+  }
+
+  .step-list li {
+    padding: 12px 0 12px 55px;
+    position: relative;
+    counter-increment: step;
+  }
+
+  .step-list li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .demo-terminal {
+    background: #0c0c14;
+    border: 1px solid #2a2a4a;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 15px 0;
+  }
+
+  .terminal-header {
+    background: #1a1a2e;
+    padding: 10px 16px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .terminal-dot.red { background: #f87171; }
+  .terminal-dot.yellow { background: #fbbf24; }
+  .terminal-dot.green { background: #4ade80; }
+
+  .terminal-body {
+    padding: 20px 25px;
+    font-family: 'Fira Code', monospace;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: #cdd6f4;
+  }
+
+  .center-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .end-slide h2 {
+    font-size: 3rem;
+    text-align: center;
+  }
+
+  .end-slide h2::after {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<!-- Slide 1: Title -->
+<div class="slide slide-title active" id="slide-1">
+  <h1>바이브 코딩</h1>
+  <p class="subtitle">AI와 함께하는 새로운 개발 패러다임</p>
+  <div style="display:flex; gap:12px; justify-content:center; margin-bottom: 40px;">
+    <span class="tag tag-blue">Gemini CLI</span>
+    <span class="tag tag-purple">실습 포함</span>
+    <span class="tag tag-pink">10분 세미나</span>
+  </div>
+  <p class="meta">2026.03.30</p>
+</div>
+
+<!-- Slide 2: What is Vibe Coding -->
+<div class="slide" id="slide-2">
+  <h2>바이브 코딩이란?</h2>
+  <div class="quote-box">
+    "There's a new kind of coding I call 'vibe coding', where you fully give in to the vibes,
+    embrace exponentials, and forget that the code even exists."
+    <span class="author">-- Andrej Karpathy (전 Tesla AI Director, OpenAI 공동창립자) / 2025.02</span>
+  </div>
+  <div style="margin-top: 30px;">
+    <ul>
+      <li><span class="highlight">자연어로 설명</span>하면 AI가 코드를 생성하는 개발 방식</li>
+      <li>코드를 직접 작성하지 않고, <span class="highlight">의도(Vibe)를 전달</span></li>
+      <li>"대충 이런 느낌으로 만들어줘" = <span class="highlight">바이브</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 3: Before vs After -->
+<div class="slide" id="slide-3">
+  <h2>개발 방식의 변화</h2>
+  <div class="two-col">
+    <div class="col">
+      <h3 style="color: #9ca3af;">기존 개발</h3>
+      <div class="flow-chart" style="flex-direction: column; align-items: flex-start;">
+        <div class="flow-step" style="background: rgba(100,100,120,0.15); border-color: rgba(100,100,120,0.3); color: #9ca3af; width: 100%; text-align: left;">1. 문법 학습 (수개월)</div>
+        <div class="flow-arrow" style="color: #6b7280;">&#8595;</div>
+        <div class="flow-step" style="background: rgba(100,100,120,0.15); border-color: rgba(100,100,120,0.3); color: #9ca3af; width: 100%; text-align: left;">2. 프레임워크 학습</div>
+        <div class="flow-arrow" style="color: #6b7280;">&#8595;</div>
+        <div class="flow-step" style="background: rgba(100,100,120,0.15); border-color: rgba(100,100,120,0.3); color: #9ca3af; width: 100%; text-align: left;">3. 코드 작성 & 디버깅</div>
+        <div class="flow-arrow" style="color: #6b7280;">&#8595;</div>
+        <div class="flow-step" style="background: rgba(100,100,120,0.15); border-color: rgba(100,100,120,0.3); color: #9ca3af; width: 100%; text-align: left;">4. 완성 (수주~수개월)</div>
+      </div>
+    </div>
+    <div class="col">
+      <h3>바이브 코딩</h3>
+      <div class="flow-chart" style="flex-direction: column; align-items: flex-start;">
+        <div class="flow-step" style="width: 100%; text-align: left;">1. 원하는 것을 자연어로 설명</div>
+        <div class="flow-arrow">&#8595;</div>
+        <div class="flow-step" style="width: 100%; text-align: left;">2. AI가 코드 생성</div>
+        <div class="flow-arrow">&#8595;</div>
+        <div class="flow-step" style="width: 100%; text-align: left;">3. 결과 확인 & 피드백</div>
+        <div class="flow-arrow">&#8595;</div>
+        <div class="flow-step" style="width: 100%; text-align: left;">4. 완성 (수분~수시간)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4: Core Tools -->
+<div class="slide" id="slide-4">
+  <h2>바이브 코딩 도구들</h2>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">&#9672;</div>
+      <h3>Cursor</h3>
+      <p>AI 네이티브 IDE<br>코드 에디터 통합</p>
+      <div style="margin-top:12px"><span class="tag tag-blue">에디터</span></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#9655;</div>
+      <h3>Claude Code</h3>
+      <p>Anthropic의 CLI 에이전트<br>터미널 기반 개발</p>
+      <div style="margin-top:12px"><span class="tag tag-purple">CLI</span></div>
+    </div>
+    <div class="card" style="border-color: rgba(99, 102, 241, 0.5); box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);">
+      <div class="card-icon">&#9670;</div>
+      <h3>Gemini CLI</h3>
+      <p>Google의 무료 CLI 도구<br><b style="color:#a5b4fc">오늘의 실습 도구!</b></p>
+      <div style="margin-top:12px"><span class="tag tag-green">무료</span><span class="tag tag-pink">CLI</span></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#9635;</div>
+      <h3>Windsurf</h3>
+      <p>Codeium의 AI IDE<br>Flow 기반 에이전트</p>
+      <div style="margin-top:12px"><span class="tag tag-blue">에디터</span></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#11044;</div>
+      <h3>Bolt / Lovable</h3>
+      <p>웹 기반 앱 생성<br>노코드에 가까운 UX</p>
+      <div style="margin-top:12px"><span class="tag tag-yellow">웹</span></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#9881;</div>
+      <h3>GitHub Copilot</h3>
+      <p>코드 자동완성<br>Agent 모드 출시</p>
+      <div style="margin-top:12px"><span class="tag tag-blue">에디터</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5: Why Gemini CLI -->
+<div class="slide" id="slide-5">
+  <h2>왜 Gemini CLI인가?</h2>
+  <div class="two-col">
+    <div class="col">
+      <ul>
+        <li><span class="highlight">완전 무료</span> -- Google 계정만 있으면 OK</li>
+        <li>하루 <span class="highlight">1,000회 요청</span> (Gemini 2.5 Pro)</li>
+        <li>설치가 매우 간단 (<span class="highlight">npm 한 줄</span>)</li>
+        <li>터미널에서 바로 사용</li>
+        <li>파일 읽기/쓰기, 명령 실행 가능</li>
+        <li>MCP 서버 연동 지원</li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="demo-terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+        </div>
+        <div class="terminal-body">
+          <span class="comment"># 설치</span><br>
+          <span class="prompt">$</span> <span class="cmd">npm install</span> <span class="flag">-g</span> @anthropic-ai/claude-code<br>
+          <br>
+          <span class="comment"># 아 잠깐, Gemini CLI 였지</span><br>
+          <span class="prompt">$</span> <span class="cmd">npm install</span> <span class="flag">-g</span> @anthropic-ai/claude-code<br>
+          <br>
+          <span class="comment"># 설치 (진짜)</span><br>
+          <span class="prompt">$</span> <span class="cmd">npm install</span> <span class="flag">-g</span> @google/gemini-cli<br>
+          <br>
+          <span class="comment"># 실행</span><br>
+          <span class="prompt">$</span> <span class="cmd">gemini</span><br>
+          <br>
+          <span style="color:#a6e3a1">&#10003;</span> Google 로그인 완료<br>
+          <span style="color:#89b4fa">&#10148;</span> 무엇을 만들어볼까요?
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 6: Live Demo Plan -->
+<div class="slide" id="slide-6">
+  <h2>실습: Gemini CLI로 앱 만들기</h2>
+  <p style="font-size: 1.2rem; color: #9ca3af; margin-bottom: 25px;">
+    간단한 웹 앱을 자연어만으로 만들어 봅시다
+  </p>
+  <div class="two-col">
+    <div class="col">
+      <h3>실습 시나리오</h3>
+      <ol class="step-list">
+        <li>프로젝트 폴더 생성 & 이동</li>
+        <li><code style="color:#a5b4fc">gemini</code> 실행</li>
+        <li>자연어로 요구사항 전달</li>
+        <li>생성된 결과 확인</li>
+        <li>피드백 &rarr; 수정 반복</li>
+      </ol>
+    </div>
+    <div class="col">
+      <div class="demo-terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+        </div>
+        <div class="terminal-body">
+          <span class="prompt">$</span> <span class="cmd">mkdir</span> my-app && <span class="cmd">cd</span> my-app<br>
+          <span class="prompt">$</span> <span class="cmd">gemini</span><br>
+          <br>
+          <span style="color:#89b4fa">&#10148;</span> <span class="string">"할 일 관리 웹앱을 만들어줘.</span><br>
+          <span class="string">&nbsp;&nbsp;HTML, CSS, JS 단일 파일로.</span><br>
+          <span class="string">&nbsp;&nbsp;다크모드에 깔끔한 디자인으로.</span><br>
+          <span class="string">&nbsp;&nbsp;로컬스토리지에 저장되게 해줘"</span><br>
+          <br>
+          <span style="color:#a6e3a1">&#10003;</span> index.html 생성 완료<br>
+          <br>
+          <span class="prompt">$</span> <span class="cmd">open</span> index.html
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 7: Tips for Vibe Coding -->
+<div class="slide" id="slide-7">
+  <h2>바이브 코딩 잘하는 법</h2>
+  <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
+    <div class="card">
+      <div class="card-icon">&#128172;</div>
+      <h3>1. 명확한 요구사항 전달</h3>
+      <p>
+        <span style="color:#f87171">&#10007;</span> "앱 만들어줘"<br>
+        <span style="color:#4ade80">&#10003;</span> "할 일 관리 웹앱을 만들어줘. 할 일 추가/삭제/완료 체크 기능, 다크모드, 로컬스토리지 저장"
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#128260;</div>
+      <h3>2. 점진적으로 발전시키기</h3>
+      <p>
+        한번에 완벽한 결과를 기대하지 말고,<br>
+        작은 단위로 요청 &rarr; 확인 &rarr; 피드백을 반복
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#128065;</div>
+      <h3>3. 결과를 반드시 검증</h3>
+      <p>
+        AI가 만든 코드를 무조건 신뢰하지 말 것.<br>
+        실행해보고, 에러가 있으면 에러 메시지를 그대로 전달
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#128736;</div>
+      <h3>4. 컨텍스트를 제공하기</h3>
+      <p>
+        기존 파일이 있다면 같은 폴더에서 실행.<br>
+        "이 프로젝트의 스타일에 맞게" 등 맥락 공유
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 8: Pros and Cons -->
+<div class="slide" id="slide-8">
+  <h2>바이브 코딩의 빛과 그림자</h2>
+  <div class="pros-cons">
+    <div class="pros">
+      <h3>장점</h3>
+      <ul>
+        <li>개발 속도 <span class="highlight">비약적 향상</span></li>
+        <li>비개발자도 프로토타입 제작 가능</li>
+        <li>반복적인 보일러플레이트 코드 자동화</li>
+        <li>새로운 기술 스택 빠르게 사용</li>
+        <li>아이디어 &rarr; 구현의 간극 최소화</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h3>주의사항</h3>
+      <ul>
+        <li><span style="color:#fca5a5">보안 취약점</span>을 포함할 수 있음</li>
+        <li>코드 이해 없이 사용 시 <span style="color:#fca5a5">유지보수 어려움</span></li>
+        <li>복잡한 비즈니스 로직은 여전히 한계</li>
+        <li>AI 환각(Hallucination)에 의한 버그</li>
+        <li>프로덕션 적용 시 철저한 검증 필요</li>
+      </ul>
+    </div>
+  </div>
+  <div class="warning-box" style="margin-top: 30px;">
+    <p style="font-size: 1.15rem;"><b style="color: #fbbf24;">핵심:</b> 바이브 코딩은 <b>프로토타이핑과 자동화 도구</b>로서 강력하지만,
+    <b>프로덕션 코드</b>에는 반드시 전문가의 리뷰가 필요합니다.</p>
+  </div>
+</div>
+
+<!-- Slide 9: Use Cases for Security -->
+<div class="slide" id="slide-9">
+  <h2>보안 업무에서의 활용</h2>
+  <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
+    <div class="card">
+      <div class="card-icon">&#128209;</div>
+      <h3>보고서 자동화</h3>
+      <p>취약점 스캔 결과를 파싱해서<br>보고서 템플릿 자동 생성</p>
+      <div style="margin-top:12px">
+        <span class="tag tag-green">빠른 적용</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#128295;</div>
+      <h3>간단한 도구 제작</h3>
+      <p>로그 분석, IP 조회, 포트 스캔 결과 정리 등<br>일회성 스크립트</p>
+      <div style="margin-top:12px">
+        <span class="tag tag-green">빠른 적용</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#128202;</div>
+      <h3>데이터 시각화</h3>
+      <p>Pentera 결과 대시보드,<br>취약점 트렌드 차트 생성</p>
+      <div style="margin-top:12px">
+        <span class="tag tag-yellow">검증 필요</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#127891;</div>
+      <h3>학습 & PoC</h3>
+      <p>새로운 공격 기법 PoC 코드 이해,<br>CTF 문제 풀이 보조</p>
+      <div style="margin-top:12px">
+        <span class="tag tag-yellow">검증 필요</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 10: Summary & QA -->
+<div class="slide end-slide" id="slide-10">
+  <h2>정리</h2>
+  <div style="max-width: 750px; margin: 0 auto;">
+    <ul style="margin-bottom: 40px;">
+      <li>바이브 코딩 = <span class="highlight">자연어로 AI에게 코드 생성을 맡기는 것</span></li>
+      <li>Gemini CLI는 <span class="highlight">무료</span>로 바로 시작할 수 있는 좋은 도구</li>
+      <li><span class="highlight">명확한 요구사항 + 점진적 발전 + 결과 검증</span>이 핵심</li>
+      <li>보안 업무에서는 <span class="highlight">자동화, 보고서, 도구 제작</span>에 바로 활용 가능</li>
+    </ul>
+    <div style="text-align: center; margin-top: 50px;">
+      <div style="font-size: 2rem; margin-bottom: 15px; color: #818cf8;">Q & A</div>
+      <p style="color: #6b7280; font-size: 1.1rem;">감사합니다</p>
+    </div>
+  </div>
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <button onclick="prevSlide()">&#8592; 이전</button>
+  <button onclick="nextSlide()">다음 &#8594;</button>
+</div>
+<div class="slide-counter" id="counter">1 / 10</div>
+
+<script>
+  let current = 1;
+  const total = 10;
+
+  function showSlide(n) {
+    document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+    document.getElementById(`slide-${n}`).classList.add('active');
+    document.getElementById('counter').textContent = `${n} / ${total}`;
+    document.getElementById('progress').style.width = `${(n / total) * 100}%`;
+  }
+
+  function nextSlide() {
+    if (current < total) { current++; showSlide(current); }
+  }
+
+  function prevSlide() {
+    if (current > 1) { current--; showSlide(current); }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      nextSlide();
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+      e.preventDefault();
+      prevSlide();
+    }
+  });
+
+  // Touch support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+  document.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) nextSlide();
+    if (diff < -50) prevSlide();
+  });
+</script>
+
+</body>
+</html>
