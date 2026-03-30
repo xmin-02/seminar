@@ -1,0 +1,102 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const seminars = await getCollection('seminars');
+const sorted = seminars.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
+
+const categories = [...new Set(sorted.map(s => s.data.category))];
+---
+
+<Layout title="xmin seminar">
+  <section class="section-container">
+    <div class="mb-12">
+      <h1 class="text-4xl font-bold tracking-tight mb-3" style="font-family: var(--font-display);">
+        Seminar Archive
+      </h1>
+      <p class="text-lg text-[var(--color-text-secondary)]">
+        세미나 발표 자료 모음
+      </p>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="flex flex-wrap gap-2 mb-10" id="category-filter">
+      <button data-category="all" class="filter-btn active px-4 py-1.5 rounded-full text-sm font-medium border border-[var(--color-border)] transition-all duration-200">
+        전체
+      </button>
+      {categories.map(cat => (
+        <button data-category={cat} class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium border border-[var(--color-border)] text-[var(--color-text-secondary)] transition-all duration-200">
+          {cat}
+        </button>
+      ))}
+    </div>
+
+    <!-- Seminar List -->
+    <div class="grid gap-4" id="seminar-list">
+      {sorted.map(seminar => (
+        <a href={`/${seminar.id}`} class="card group block" data-category={seminar.data.category}>
+          <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+            <time class="text-sm font-mono text-[var(--color-text-secondary)] shrink-0">
+              {seminar.data.date}
+            </time>
+            <div class="flex-1 min-w-0">
+              <h2 class="text-lg font-semibold group-hover:text-[var(--color-primary)] transition-colors truncate">
+                {seminar.data.title}
+              </h2>
+              {seminar.data.description && (
+                <p class="text-sm text-[var(--color-text-secondary)] mt-1 line-clamp-1">
+                  {seminar.data.description}
+                </p>
+              )}
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="px-3 py-1 rounded-full text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                {seminar.data.category}
+              </span>
+              {seminar.data.tags?.map(tag => (
+                <span class="px-2 py-1 rounded-full text-xs text-[var(--color-text-secondary)] bg-[var(--color-bg)] border border-[var(--color-border)]">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    {sorted.length === 0 && (
+      <div class="text-center py-20 text-[var(--color-text-secondary)]">
+        <p class="text-lg">아직 등록된 세미나가 없습니다.</p>
+        <p class="text-sm mt-2">src/content/seminars/ 에 마크다운 파일을 추가해주세요.</p>
+      </div>
+    )}
+  </section>
+
+  <script is:inline>
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => {
+          b.classList.remove('active');
+          b.style.backgroundColor = '';
+          b.style.color = '';
+          b.style.borderColor = '';
+        });
+        btn.classList.add('active');
+
+        const cat = btn.dataset.category;
+        document.querySelectorAll('#seminar-list > a').forEach(card => {
+          if (cat === 'all' || card.dataset.category === cat) {
+            card.style.display = '';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    // Style active filter
+    const style = document.createElement('style');
+    style.textContent = `.filter-btn.active { background-color: var(--color-primary); color: white; border-color: var(--color-primary); }`;
+    document.head.appendChild(style);
+  </script>
+</Layout>

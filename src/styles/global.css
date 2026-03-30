@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: 'Satoshi', 'Pretendard', system-ui, sans-serif;
+  --font-sans: 'Pretendard', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  --color-primary: #0d9488;
+  --color-primary-light: #2dd4bf;
+  --color-primary-dark: #0f766e;
+  --color-accent: #f59e0b;
+
+  --color-bg: #fafafa;
+  --color-bg-secondary: #f4f4f5;
+  --color-text: #09090b;
+  --color-text-secondary: #52525b;
+  --color-border: #e4e4e7;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  .dark {
+    color-scheme: dark;
+    --color-bg: #09090b;
+    --color-bg-secondary: #18181b;
+    --color-text: #fafafa;
+    --color-text-secondary: #a1a1aa;
+    --color-border: #27272a;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    transition: background-color 0.3s, color 0.3s;
+    animation: page-enter 0.4s ease both;
+  }
+
+  @keyframes page-enter {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: white;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-secondary);
+  }
+}
+
+@layer components {
+  .section-container {
+    @apply mx-auto max-w-5xl px-6 py-20;
+  }
+
+  .card {
+    @apply rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-6 transition-all duration-300;
+  }
+
+  .card:hover {
+    @apply border-[var(--color-primary)]/30 shadow-lg;
+  }
+
+  .prose {
+    @apply leading-relaxed text-[var(--color-text)];
+  }
+  .prose h1 { @apply text-3xl font-bold mt-10 mb-4 tracking-tight; font-family: var(--font-display); }
+  .prose h2 { @apply text-2xl font-bold mt-8 mb-3 tracking-tight; font-family: var(--font-display); }
+  .prose h3 { @apply text-xl font-semibold mt-6 mb-2; }
+  .prose p { @apply mb-4; }
+  .prose ul { @apply list-disc pl-6 mb-4 space-y-1; }
+  .prose ol { @apply list-decimal pl-6 mb-4 space-y-1; }
+  .prose li { @apply text-[var(--color-text-secondary)]; }
+  .prose code {
+    @apply text-sm px-1.5 py-0.5 rounded-md bg-[var(--color-bg-secondary)] border border-[var(--color-border)] font-[var(--font-mono)];
+  }
+  .prose pre {
+    @apply rounded-xl p-4 mb-4 overflow-x-auto border border-[var(--color-border)] bg-[var(--color-bg-secondary)];
+  }
+  .prose pre code {
+    @apply border-0 bg-transparent p-0;
+  }
+  .prose a {
+    @apply text-[var(--color-primary)] underline underline-offset-2 hover:text-[var(--color-primary-dark)];
+  }
+  .prose blockquote {
+    @apply border-l-4 border-[var(--color-primary)] pl-4 italic text-[var(--color-text-secondary)] my-4;
+  }
+  .prose img {
+    @apply rounded-xl my-6;
+  }
+  .prose table {
+    @apply w-full border-collapse mb-4;
+  }
+  .prose th {
+    @apply text-left p-3 border-b-2 border-[var(--color-border)] font-semibold;
+  }
+  .prose td {
+    @apply p-3 border-b border-[var(--color-border)];
+  }
+}

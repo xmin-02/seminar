@@ -1,0 +1,59 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const seminars = await getCollection('seminars');
+  return seminars.map(seminar => ({
+    params: { id: seminar.id },
+    props: { seminar },
+  }));
+}
+
+const { seminar } = Astro.props;
+const { Content } = await render(seminar);
+---
+
+<Layout title={`${seminar.data.title} | xmin seminar`} description={seminar.data.description}>
+  <article class="section-container">
+    <div class="mb-10">
+      <a href="/" class="inline-flex items-center gap-1 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors mb-6">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        목록으로
+      </a>
+      <div class="flex items-center gap-3 mb-4">
+        <span class="px-3 py-1 rounded-full text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+          {seminar.data.category}
+        </span>
+        <time class="text-sm font-mono text-[var(--color-text-secondary)]">
+          {seminar.data.date}
+        </time>
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-bold tracking-tight" style="font-family: var(--font-display);">
+        {seminar.data.title}
+      </h1>
+      {seminar.data.description && (
+        <p class="text-lg text-[var(--color-text-secondary)] mt-3">
+          {seminar.data.description}
+        </p>
+      )}
+      {seminar.data.tags && (
+        <div class="flex flex-wrap gap-2 mt-4">
+          {seminar.data.tags.map(tag => (
+            <span class="px-2 py-1 rounded-full text-xs text-[var(--color-text-secondary)] bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <hr class="border-[var(--color-border)] mb-10" />
+
+    <div class="prose max-w-none">
+      <Content />
+    </div>
+  </article>
+</Layout>
