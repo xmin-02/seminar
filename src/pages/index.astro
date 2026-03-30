@@ -35,29 +35,29 @@ const categories = [...new Set(sorted.map(s => s.data.category))];
     <div class="grid gap-4" id="seminar-list">
       {sorted.map(seminar => (
         <a href={`/${seminar.id}`} class="card group block" data-category={seminar.data.category}>
-          <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
-            <time class="text-sm font-mono text-[var(--color-text-secondary)] shrink-0">
+          <div class="flex items-start gap-4 sm:gap-6">
+            <time class="text-sm font-mono text-[var(--color-text-secondary)] shrink-0 pt-0.5">
               {seminar.data.date}
             </time>
             <div class="flex-1 min-w-0">
-              <h2 class="text-lg font-semibold group-hover:text-[var(--color-primary)] transition-colors truncate">
+              <h2 class="text-lg font-semibold group-hover:text-[var(--color-primary)] transition-colors">
                 {seminar.data.title}
               </h2>
               {seminar.data.description && (
-                <p class="text-sm text-[var(--color-text-secondary)] mt-1 line-clamp-1">
+                <p class="text-sm text-[var(--color-text-secondary)] mt-1 line-clamp-2">
                   {seminar.data.description}
                 </p>
               )}
-            </div>
-            <div class="flex flex-wrap items-center gap-2 sm:shrink-0">
-              <span class="px-3 py-1 rounded-full text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-                {seminar.data.category}
-              </span>
-              {seminar.data.tags?.map(tag => (
-                <span class="hidden sm:inline-block px-2 py-1 rounded-full text-xs text-[var(--color-text-secondary)] bg-[var(--color-bg)] border border-[var(--color-border)]">
-                  {tag}
+              <div class="flex flex-wrap items-center gap-2 mt-3">
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                  {seminar.data.category}
                 </span>
-              ))}
+                {seminar.data.tags?.map(tag => (
+                  <span class="px-2 py-1 rounded-full text-xs text-[var(--color-text-secondary)] bg-[var(--color-bg)] border border-[var(--color-border)]">
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </a>
