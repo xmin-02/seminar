@@ -32,9 +32,9 @@ const categories = [...new Set(sorted.map(s => s.data.category))];
     </div>
 
     <!-- Seminar List -->
-    <div class="grid gap-4" id="seminar-list">
+    <div class="grid gap-4" id="seminar-list" data-sortable-container="seminars">
       {sorted.map(seminar => (
-        <a href={`/${seminar.id}`} class="card group block" data-category={seminar.data.category}>
+        <a href={`/${seminar.id}`} class="card group block relative" data-category={seminar.data.category} data-sortable data-item-id={seminar.id}>
           <div class="flex items-start gap-4 sm:gap-6">
             <time class="text-sm font-mono text-[var(--color-text-secondary)] shrink-0 pt-0.5">
               {seminar.data.date}
@@ -60,6 +60,15 @@ const categories = [...new Set(sorted.map(s => s.data.category))];
               </div>
             </div>
           </div>
+          <a
+            href={`https://github.com/xmin-02/seminar/edit/main/src/content/seminars/${seminar.id}.md`}
+            class="admin-edit-link hidden absolute top-3 right-3 px-2 py-1 rounded-lg text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 transition-colors"
+            target="_blank"
+            rel="noopener noreferrer"
+            onclick="event.stopPropagation()"
+          >
+            Edit
+          </a>
         </a>
       ))}
     </div>

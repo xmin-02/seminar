@@ -110,6 +110,29 @@
   .prose img {
     @apply rounded-xl my-6;
   }
+
+  /* Admin reorder styles */
+  .reorder-active {
+    @apply ring-2 ring-[var(--color-primary)]/40 cursor-grab select-none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .reorder-active:hover {
+    @apply shadow-md;
+    transform: translateY(-1px);
+  }
+
+  .drag-over {
+    @apply ring-2 ring-[var(--color-primary)] ring-offset-2;
+    transform: scale(1.01);
+  }
+
+  .reorder-container-active {
+    @apply rounded-2xl;
+    outline: 2px dashed var(--color-primary);
+    outline-offset: 8px;
+    padding: 4px;
+  }
   .prose table {
     @apply w-full border-collapse mb-4;
   }

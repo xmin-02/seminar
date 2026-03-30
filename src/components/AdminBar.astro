@@ -1,0 +1,371 @@
+---
+// Admin floating bar - client-side auth with SHA-256 hash
+// To set your password, generate a SHA-256 hash:
+//   echo -n "yourpassword" | shasum -a 256
+// Then replace the hash below.
+---
+
+<!-- Login Modal -->
+<div id="admin-login-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+  <div class="bg-[var(--color-bg)] border border-[var(--color-border)] rounded-2xl p-8 w-full max-w-sm mx-4 shadow-2xl">
+    <h2 class="text-xl font-bold mb-6">Admin Login</h2>
+    <form id="admin-login-form">
+      <input
+        type="password"
+        id="admin-password"
+        placeholder="Password"
+        class="w-full px-4 py-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] text-[var(--color-text)] mb-4 focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+        autocomplete="current-password"
+      />
+      <p id="admin-login-error" class="text-red-500 text-sm mb-4 hidden">Incorrect password / 잘못된 비밀번호</p>
+      <div class="flex gap-3">
+        <button
+          type="submit"
+          class="flex-1 bg-[var(--color-primary)] text-white px-4 py-3 rounded-xl font-medium hover:bg-[var(--color-primary-dark)] transition-colors cursor-pointer"
+        >
+          Login
+        </button>
+        <button
+          type="button"
+          id="admin-login-cancel"
+          class="px-4 py-3 rounded-xl border border-[var(--color-border)] font-medium hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Admin Floating Button -->
+<button
+  id="admin-fab"
+  class="fixed bottom-6 right-6 z-50 p-3 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-secondary)] shadow-lg transition-all duration-300 hover:scale-110 cursor-pointer opacity-90 hover:opacity-100"
+  aria-label="Admin"
+  title="Admin Login"
+>
+  <svg class="w-5 h-5 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+  </svg>
+</button>
+
+<!-- Admin Toolbar (visible when logged in) -->
+<div id="admin-toolbar" class="fixed bottom-6 right-6 z-50 hidden">
+  <div class="flex items-center gap-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-2xl px-4 py-2 shadow-lg">
+    <span class="text-xs font-mono text-[var(--color-primary)] font-medium">ADMIN</span>
+    <div class="w-px h-4 bg-[var(--color-border)]"></div>
+    <button
+      id="admin-reorder-btn"
+      class="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors font-medium cursor-pointer"
+    >
+      Reorder
+    </button>
+    <div class="w-px h-4 bg-[var(--color-border)]"></div>
+    <button
+      id="admin-logout-btn"
+      class="text-xs text-[var(--color-text-secondary)] hover:text-red-500 transition-colors font-medium cursor-pointer"
+    >
+      Logout
+    </button>
+  </div>
+</div>
+
+<!-- Reorder save bar (visible in reorder mode) -->
+<div id="admin-reorder-bar" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden">
+  <div class="flex items-center gap-3 bg-[var(--color-primary)] text-white rounded-2xl px-6 py-3 shadow-lg">
+    <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+    </svg>
+    <span class="text-sm font-medium">Drag to reorder</span>
+    <button id="admin-save-order" class="px-3 py-1 bg-white/20 rounded-lg text-sm font-medium hover:bg-white/30 transition-colors cursor-pointer">
+      Save
+    </button>
+    <button id="admin-cancel-reorder" class="px-3 py-1 bg-white/10 rounded-lg text-sm font-medium hover:bg-white/20 transition-colors cursor-pointer">
+      Cancel
+    </button>
+  </div>
+</div>
+
+<script is:inline>
+  // NOTE: Client-side only — cosmetic auth for UI toggling, not real security
+  // SHA-256 hash of admin password
+  // Generate: echo -n "yourpassword" | shasum -a 256
+  const ADMIN_HASH = 'bd1d6b8f47c0e5abee979f61815ed015883979fec8e5a57fdc4e81785af8e150';
+
+  async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  const fab = document.getElementById('admin-fab');
+  const modal = document.getElementById('admin-login-modal');
+  const form = document.getElementById('admin-login-form');
+  const passwordInput = document.getElementById('admin-password');
+  const errorMsg = document.getElementById('admin-login-error');
+  const cancelBtn = document.getElementById('admin-login-cancel');
+  const toolbar = document.getElementById('admin-toolbar');
+  const logoutBtn = document.getElementById('admin-logout-btn');
+
+  function showModal() {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    passwordInput.focus();
+  }
+
+  function hideModal() {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    errorMsg.classList.add('hidden');
+    passwordInput.value = '';
+  }
+
+  function setAdminUI(isAdmin) {
+    if (isAdmin) {
+      fab.classList.add('hidden');
+      toolbar.classList.remove('hidden');
+      document.body.classList.add('admin-mode');
+    } else {
+      fab.classList.remove('hidden');
+      toolbar.classList.add('hidden');
+      document.body.classList.remove('admin-mode');
+    }
+    // Show/hide edit links on seminar cards
+    document.querySelectorAll('.admin-edit-link').forEach(el => {
+      el.classList.toggle('hidden', !isAdmin);
+    });
+  }
+
+  // Check saved session
+  const savedSession = localStorage.getItem('admin_session');
+  if (savedSession === ADMIN_HASH) {
+    setAdminUI(true);
+  }
+
+  // FAB click → show login modal
+  fab.addEventListener('click', showModal);
+  cancelBtn.addEventListener('click', hideModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) hideModal();
+  });
+
+  // Login
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorMsg.classList.add('hidden');
+    const hash = await sha256(passwordInput.value);
+    if (hash === ADMIN_HASH) {
+      localStorage.setItem('admin_session', hash);
+      hideModal();
+      setAdminUI(true);
+    } else {
+      errorMsg.classList.remove('hidden');
+      passwordInput.value = '';
+      passwordInput.focus();
+    }
+  });
+
+  // Logout
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('admin_session');
+    setAdminUI(false);
+    // Exit reorder mode if active
+    if (isReorderMode) {
+      restoreOriginalState();
+      disableReorderMode();
+    }
+  });
+
+  // ESC to close modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      hideModal();
+    }
+  });
+
+  // === Drag & Drop Reorder System ===
+  const reorderBtn = document.getElementById('admin-reorder-btn');
+  const reorderBar = document.getElementById('admin-reorder-bar');
+  const saveOrderBtn = document.getElementById('admin-save-order');
+  const cancelReorderBtn = document.getElementById('admin-cancel-reorder');
+
+  let isReorderMode = false;
+  let draggedEl = null;
+  let originalOrder = {};
+
+  function reorderClickBlocker(e) {
+    if (!isReorderMode) return;
+    const sortable = e.target.closest('[data-sortable]');
+    if (sortable && sortable.tagName === 'A') {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+
+  function enableReorderMode() {
+    isReorderMode = true;
+    toolbar.classList.add('hidden');
+    reorderBar.classList.remove('hidden');
+
+    // Save original order for cancel
+    document.querySelectorAll('[data-sortable-container]').forEach(container => {
+      const key = container.dataset.sortableContainer;
+      const items = Array.from(container.querySelectorAll('[data-sortable]'));
+      originalOrder[key] = items.map(c => c.dataset.itemId);
+    });
+
+    // Block link clicks in reorder mode
+    document.addEventListener('click', reorderClickBlocker, true);
+
+    // Mark container as active
+    document.querySelectorAll('[data-sortable-container]').forEach(c => {
+      c.classList.add('reorder-container-active');
+    });
+
+    // Make items draggable
+    document.querySelectorAll('[data-sortable]').forEach(el => {
+      el.setAttribute('draggable', 'true');
+      el.style.cursor = 'grab';
+      el.classList.add('reorder-active');
+    });
+  }
+
+  function disableReorderMode() {
+    isReorderMode = false;
+    reorderBar.classList.add('hidden');
+    toolbar.classList.remove('hidden');
+    document.removeEventListener('click', reorderClickBlocker, true);
+
+    document.querySelectorAll('[data-sortable-container]').forEach(c => {
+      c.classList.remove('reorder-container-active');
+    });
+
+    document.querySelectorAll('[data-sortable]').forEach(el => {
+      el.removeAttribute('draggable');
+      el.style.cursor = '';
+      el.classList.remove('reorder-active', 'drag-over');
+    });
+
+    originalOrder = {};
+  }
+
+  function restoreOriginalState() {
+    Object.entries(originalOrder).forEach(([key, ids]) => {
+      const container = document.querySelector(`[data-sortable-container="${key}"]`);
+      if (!container) return;
+      ids.forEach(id => {
+        const el = document.querySelector(`[data-item-id="${id}"]`);
+        if (el) container.appendChild(el);
+      });
+    });
+  }
+
+  function getCurrentOrder() {
+    const order = {};
+    document.querySelectorAll('[data-sortable-container]').forEach(container => {
+      const key = container.dataset.sortableContainer;
+      const items = Array.from(container.querySelectorAll('[data-sortable]'));
+      order[key] = items.map(c => c.dataset.itemId);
+    });
+    return order;
+  }
+
+  function saveOrderToStorage(order) {
+    localStorage.setItem('seminar-order', JSON.stringify(order));
+  }
+
+  function loadOrderFromStorage() {
+    try {
+      const saved = localStorage.getItem('seminar-order');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return null;
+  }
+
+  function applyOrder(order) {
+    if (!order) return;
+    Object.entries(order).forEach(([key, ids]) => {
+      const container = document.querySelector(`[data-sortable-container="${key}"]`);
+      if (!container) return;
+      ids.forEach(id => {
+        const el = document.querySelector(`[data-item-id="${id}"]`);
+        if (el) container.appendChild(el);
+      });
+    });
+  }
+
+  // Drag & drop
+  document.addEventListener('dragstart', (e) => {
+    if (!isReorderMode) return;
+    const sortable = e.target.closest('[data-sortable]');
+    if (!sortable) return;
+    draggedEl = sortable;
+    sortable.style.opacity = '0.4';
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', sortable.dataset.itemId);
+  });
+
+  document.addEventListener('dragend', () => {
+    if (!isReorderMode || !draggedEl) return;
+    draggedEl.style.opacity = '';
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    draggedEl = null;
+  });
+
+  document.addEventListener('dragover', (e) => {
+    if (!isReorderMode || !draggedEl) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+
+    const target = e.target.closest('[data-sortable]');
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    if (target && target !== draggedEl) {
+      target.classList.add('drag-over');
+    }
+  });
+
+  document.addEventListener('drop', (e) => {
+    if (!isReorderMode || !draggedEl) return;
+    e.preventDefault();
+
+    const target = e.target.closest('[data-sortable]');
+    const container = e.target.closest('[data-sortable-container]');
+
+    if (target && target !== draggedEl) {
+      const rect = target.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (e.clientY < midY) {
+        target.parentElement.insertBefore(draggedEl, target);
+      } else {
+        target.parentElement.insertBefore(draggedEl, target.nextSibling);
+      }
+    } else if (container && !target) {
+      container.appendChild(draggedEl);
+    }
+
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+  });
+
+  // Button handlers
+  reorderBtn?.addEventListener('click', enableReorderMode);
+
+  saveOrderBtn?.addEventListener('click', () => {
+    const order = getCurrentOrder();
+    saveOrderToStorage(order);
+    saveOrderBtn.textContent = 'Saved!';
+    saveOrderBtn.disabled = true;
+    setTimeout(() => {
+      saveOrderBtn.textContent = 'Save';
+      saveOrderBtn.disabled = false;
+      disableReorderMode();
+    }, 800);
+  });
+
+  cancelReorderBtn?.addEventListener('click', () => {
+    restoreOriginalState();
+    disableReorderMode();
+  });
+
+  // Load saved order on page load (for all visitors)
+  applyOrder(loadOrderFromStorage());
+</script>
