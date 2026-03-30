@@ -542,7 +542,7 @@
       <ul>
         <li><span class="highlight">완전 무료</span> -- Google 계정만 있으면 OK</li>
         <li>하루 <span class="highlight">1,000회 요청</span> (Gemini 2.5 Pro)</li>
-        <li>설치가 매우 간단 (<span class="highlight">npm 한 줄</span>)</li>
+        <li>설치가 매우 간단</li>
         <li>터미널에서 바로 사용</li>
         <li>파일 읽기/쓰기, 명령 실행 가능</li>
         <li>MCP 서버 연동 지원</li>
@@ -556,14 +556,15 @@
           <div class="terminal-dot green"></div>
         </div>
         <div class="terminal-body">
-          <span class="comment"># 설치</span><br>
-          <span class="prompt">$</span> <span class="cmd">npm install</span> <span class="flag">-g</span> @anthropic-ai/claude-code<br>
-          <br>
-          <span class="comment"># 아 잠깐, Gemini CLI 였지</span><br>
-          <span class="prompt">$</span> <span class="cmd">npm install</span> <span class="flag">-g</span> @anthropic-ai/claude-code<br>
-          <br>
-          <span class="comment"># 설치 (진짜)</span><br>
+          <span class="comment"># macOS (택 1)</span><br>
           <span class="prompt">$</span> <span class="cmd">npm install</span> <span class="flag">-g</span> @google/gemini-cli<br>
+          <span class="prompt">$</span> <span class="cmd">brew install</span> gemini-cli<br>
+          <br>
+          <span class="comment"># Windows (npm)</span><br>
+          <span class="prompt">&gt;</span> <span class="cmd">npm install</span> <span class="flag">-g</span> @google/gemini-cli<br>
+          <br>
+          <span class="comment"># 설치 없이 바로 실행</span><br>
+          <span class="prompt">$</span> <span class="cmd">npx</span> @google/gemini-cli<br>
           <br>
           <span class="comment"># 실행</span><br>
           <span class="prompt">$</span> <span class="cmd">gemini</span><br>
