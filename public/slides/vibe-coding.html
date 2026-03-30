@@ -227,8 +227,19 @@
   }
 
   .card-icon {
-    font-size: 2.2rem;
+    width: 36px;
+    height: 36px;
     margin-bottom: 15px;
+    color: #818cf8;
+  }
+  .card-icon svg {
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   .card h3 {
@@ -496,37 +507,37 @@
   <h2>바이브 코딩 도구들</h2>
   <div class="card-grid">
     <div class="card">
-      <div class="card-icon">&#9672;</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
       <h3>Cursor</h3>
       <p>AI 네이티브 IDE<br>코드 에디터 통합</p>
       <div style="margin-top:12px"><span class="tag tag-blue">에디터</span></div>
     </div>
     <div class="card">
-      <div class="card-icon">&#9655;</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M4 17l6-6-6-6M12 19h8"/></svg></div>
       <h3>Claude Code</h3>
       <p>Anthropic의 CLI 에이전트<br>터미널 기반 개발</p>
       <div style="margin-top:12px"><span class="tag tag-purple">CLI</span></div>
     </div>
     <div class="card" style="border-color: rgba(99, 102, 241, 0.5); box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);">
-      <div class="card-icon">&#9670;</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
       <h3>Gemini CLI</h3>
       <p>Google의 무료 CLI 도구<br><b style="color:#a5b4fc">오늘의 실습 도구!</b></p>
       <div style="margin-top:12px"><span class="tag tag-green">무료</span><span class="tag tag-pink">CLI</span></div>
     </div>
     <div class="card">
-      <div class="card-icon">&#9635;</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M18 3a3 3 0 00-3 3v12a3 3 0 003 3 3 3 0 003-3 3 3 0 00-3-3H6a3 3 0 00-3 3 3 3 0 003 3 3 3 0 003-3V6a3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3h12a3 3 0 003-3 3 3 0 00-3-3z"/></svg></div>
       <h3>Windsurf</h3>
       <p>Codeium의 AI IDE<br>Flow 기반 에이전트</p>
       <div style="margin-top:12px"><span class="tag tag-blue">에디터</span></div>
     </div>
     <div class="card">
-      <div class="card-icon">&#11044;</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>
       <h3>Bolt / Lovable</h3>
       <p>웹 기반 앱 생성<br>노코드에 가까운 UX</p>
       <div style="margin-top:12px"><span class="tag tag-yellow">웹</span></div>
     </div>
     <div class="card">
-      <div class="card-icon">&#9881;</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg></div>
       <h3>GitHub Copilot</h3>
       <p>코드 자동완성<br>Agent 모드 출시</p>
       <div style="margin-top:12px"><span class="tag tag-blue">에디터</span></div>
@@ -624,7 +635,7 @@
   <h2>바이브 코딩 잘하는 법</h2>
   <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
     <div class="card">
-      <div class="card-icon">&#128172;</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
       <h3>1. 명확한 요구사항 전달</h3>
       <p>
         <span style="color:#f87171">&#10007;</span> "앱 만들어줘"<br>
@@ -632,7 +643,7 @@
       </p>
     </div>
     <div class="card">
-      <div class="card-icon">&#128260;</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg></div>
       <h3>2. 점진적으로 발전시키기</h3>
       <p>
         한번에 완벽한 결과를 기대하지 말고,<br>
@@ -640,7 +651,7 @@
       </p>
     </div>
     <div class="card">
-      <div class="card-icon">&#128065;</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
       <h3>3. 결과를 반드시 검증</h3>
       <p>
         AI가 만든 코드를 무조건 신뢰하지 말 것.<br>
@@ -648,7 +659,7 @@
       </p>
     </div>
     <div class="card">
-      <div class="card-icon">&#128736;</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></div>
       <h3>4. 컨텍스트를 제공하기</h3>
       <p>
         기존 파일이 있다면 같은 폴더에서 실행.<br>
@@ -694,7 +705,7 @@
   <h2>보안 업무에서의 활용</h2>
   <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
     <div class="card">
-      <div class="card-icon">&#128209;</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/></svg></div>
       <h3>보고서 자동화</h3>
       <p>취약점 스캔 결과를 파싱해서<br>보고서 템플릿 자동 생성</p>
       <div style="margin-top:12px">
@@ -702,7 +713,7 @@
       </div>
     </div>
     <div class="card">
-      <div class="card-icon">&#128295;</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
       <h3>간단한 도구 제작</h3>
       <p>로그 분석, IP 조회, 포트 스캔 결과 정리 등<br>일회성 스크립트</p>
       <div style="margin-top:12px">
@@ -710,7 +721,7 @@
       </div>
     </div>
     <div class="card">
-      <div class="card-icon">&#128202;</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
       <h3>데이터 시각화</h3>
       <p>Pentera 결과 대시보드,<br>취약점 트렌드 차트 생성</p>
       <div style="margin-top:12px">
@@ -718,7 +729,7 @@
       </div>
     </div>
     <div class="card">
-      <div class="card-icon">&#127891;</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></div>
       <h3>학습 & PoC</h3>
       <p>새로운 공격 기법 PoC 코드 이해,<br>CTF 문제 풀이 보조</p>
       <div style="margin-top:12px">
