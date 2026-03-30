@@ -55,6 +55,14 @@
     <span class="text-xs font-mono text-[var(--color-primary)] font-medium">ADMIN</span>
     <div class="w-px h-4 bg-[var(--color-border)]"></div>
     <button
+      id="admin-new-btn"
+      class="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors font-medium cursor-pointer"
+      onclick="window.open('https://github.com/xmin-02/seminar/new/main/src/content/seminars?filename=new-seminar.md&value=' + encodeURIComponent('---\ntitle: \"새 세미나 제목\"\ndate: \"' + new Date().toISOString().slice(0,10) + '\"\ncategory: \"카테고리\"\ntags: [\"태그1\", \"태그2\"]\ndescription: \"한줄 설명\"\n---\n\n## 내용\n\n여기에 세미나 내용을 작성하세요.\n'), '_blank')"
+    >
+      New
+    </button>
+    <div class="w-px h-4 bg-[var(--color-border)]"></div>
+    <button
       id="admin-reorder-btn"
       class="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors font-medium cursor-pointer"
     >
