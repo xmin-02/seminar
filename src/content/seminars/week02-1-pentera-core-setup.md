@@ -6,6 +6,8 @@ tags: ["Pentera Core", "Black Box", "Gray Box", "Targeted"]
 description: "Pentera Core 초기 설정 7단계, 워크플로우, Black Box·Gray Box·Targeted 테스트 시나리오를 비교합니다."
 ---
 
+> [발표 자료 다운로드 (PPT)](/slides/Week02_01_Pentera_Core_설정_및_시나리오.pptx)
+
 ## 개요
 
 2주차 1차시에서는 Pentera Core를 처음 설치하고 설정하는 과정부터, 테스트 시나리오를 어떻게 선택하고 구성하는지까지 다룹니다.

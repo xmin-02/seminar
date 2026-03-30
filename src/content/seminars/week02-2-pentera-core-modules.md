@@ -6,6 +6,8 @@ tags: ["랜섬웨어", "Password Cracking", "Credential Exposure", "Safety"]
 description: "랜섬웨어 에뮬레이션, 라이브 테스트 상호작용, 패스워드 크래킹 엔진, Credential Exposure 모듈을 다룹니다."
 ---
 
+> [발표 자료 다운로드 (PPT)](/slides/Week02_02_Pentera_Core_설정_및_시나리오.pptx)
+
 ## 개요
 
 2주차 2차시에서는 실제 실행 단계로 들어갑니다. Pentera의 주요 모듈들 — Ransomware Emulation, Web Attack Surface, Password Cracking — 을 살펴보고, 테스트 실행 중 화면에서 무엇을 보고 어떤 결정을 해야 하는지, 그리고 Safety Guardrails가 어떻게 동작하는지를 학습합니다.

@@ -6,6 +6,8 @@ tags: ["침투 테스트", "CVSS", "Kill Chain"]
 description: "모의해킹의 개념, 취약점 vs 익스플로잇, CVSS 스코어링, Kill Chain 등 침투 테스트의 기초를 다룹니다."
 ---
 
+> [발표 자료 다운로드 (PPT)](/slides/Week01_침투테스트란.pptx)
+
 ## 개요
 
 교내 정보보호 동아리 HUB(Highest Unique Batch) 학생을 대상으로, 자동화 침투 테스트 플랫폼 Pentera의 공식 교육 자료를 활용하여 모의해킹 및 보안 검증의 기초 개념을 전달하는 세미나의 첫 번째 주차입니다.
