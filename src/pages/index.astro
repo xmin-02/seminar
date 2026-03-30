@@ -60,15 +60,13 @@ const categories = [...new Set(sorted.map(s => s.data.category))];
               </div>
             </div>
           </div>
-          <a
-            href={`https://github.com/xmin-02/seminar/edit/main/src/content/seminars/${seminar.id}.md`}
-            class="admin-edit-link hidden absolute top-3 right-3 px-2 py-1 rounded-lg text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 transition-colors"
-            target="_blank"
-            rel="noopener noreferrer"
-            onclick="event.stopPropagation()"
+          <span
+            data-edit-url={`https://github.com/xmin-02/seminar/edit/main/src/content/seminars/${seminar.id}.md`}
+            class="admin-edit-link hidden absolute top-3 right-3 px-2 py-1 rounded-lg text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 transition-colors cursor-pointer z-10"
+            onclick="event.preventDefault(); event.stopPropagation(); window.open(this.dataset.editUrl, '_blank')"
           >
             Edit
-          </a>
+          </span>
         </a>
       ))}
     </div>
