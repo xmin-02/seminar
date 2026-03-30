@@ -49,12 +49,12 @@ const categories = [...new Set(sorted.map(s => s.data.category))];
                 </p>
               )}
             </div>
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex flex-wrap items-center gap-2 sm:shrink-0">
               <span class="px-3 py-1 rounded-full text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
                 {seminar.data.category}
               </span>
               {seminar.data.tags?.map(tag => (
-                <span class="px-2 py-1 rounded-full text-xs text-[var(--color-text-secondary)] bg-[var(--color-bg)] border border-[var(--color-border)]">
+                <span class="hidden sm:inline-block px-2 py-1 rounded-full text-xs text-[var(--color-text-secondary)] bg-[var(--color-bg)] border border-[var(--color-border)]">
                   {tag}
                 </span>
               ))}
