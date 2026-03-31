@@ -98,6 +98,7 @@
   // SHA-256 hash of admin password
   // Generate: echo -n "yourpassword" | shasum -a 256
   const ADMIN_HASH = 'bd1d6b8f47c0e5abee979f61815ed015883979fec8e5a57fdc4e81785af8e150';
+  const API_BASE = 'https://seminar-api.aidi1030.workers.dev';
 
   async function sha256(message) {
     const msgBuffer = new TextEncoder().encode(message);
@@ -145,11 +146,48 @@
     applyVisibility(isAdmin);
   }
 
-  // Visibility toggle functions
+  // Visibility state — in-memory cache populated from API on load
+  let _hiddenSeminars = null;
+
   function getHiddenSeminars() {
+    if (_hiddenSeminars !== null) return _hiddenSeminars;
+    // Fallback to localStorage while API hasn't responded yet
     try {
       return JSON.parse(localStorage.getItem('hidden_seminars') || '[]');
     } catch { return []; }
+  }
+
+  async function fetchHiddenSeminarsFromAPI() {
+    try {
+      const res = await fetch(`${API_BASE}/visibility`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          _hiddenSeminars = data;
+          localStorage.setItem('hidden_seminars', JSON.stringify(data));
+          return data;
+        }
+      }
+    } catch {}
+    // Fall back to localStorage on network error
+    try {
+      return JSON.parse(localStorage.getItem('hidden_seminars') || '[]');
+    } catch { return []; }
+  }
+
+  async function saveHiddenSeminarsToAPI(hidden) {
+    try {
+      await fetch(`${API_BASE}/visibility`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${ADMIN_HASH}`,
+        },
+        body: JSON.stringify(hidden),
+      });
+    } catch {}
+    // Always keep localStorage in sync as fallback
+    localStorage.setItem('hidden_seminars', JSON.stringify(hidden));
   }
 
   function applyVisibility(isAdmin) {
@@ -179,7 +217,7 @@
     });
   }
 
-  window.toggleVisibility = function(seminarId, isVisible) {
+  window.toggleVisibility = async function(seminarId, isVisible) {
     const hidden = getHiddenSeminars();
     if (isVisible) {
       const idx = hidden.indexOf(seminarId);
@@ -187,13 +225,22 @@
     } else {
       if (!hidden.includes(seminarId)) hidden.push(seminarId);
     }
-    localStorage.setItem('hidden_seminars', JSON.stringify(hidden));
+    _hiddenSeminars = hidden;
     applyVisibility(true);
+    await saveHiddenSeminarsToAPI(hidden);
   };
 
   // Check saved session
   const savedSession = localStorage.getItem('admin_session');
-  if (savedSession === ADMIN_HASH) {
+  const isAdminOnLoad = savedSession === ADMIN_HASH;
+
+  // Fetch visibility from API for ALL visitors on page load
+  fetchHiddenSeminarsFromAPI().then((hidden) => {
+    _hiddenSeminars = hidden;
+    applyVisibility(isAdminOnLoad);
+  });
+
+  if (isAdminOnLoad) {
     setAdminUI(true);
   }
 
@@ -453,8 +500,5 @@
     });
   });
 
-  // Apply visibility for non-admin visitors on page load
-  if (!savedSession || savedSession !== ADMIN_HASH) {
-    applyVisibility(false);
-  }
+
 </script>
