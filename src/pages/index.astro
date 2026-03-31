@@ -61,23 +61,21 @@ const categories = [...new Set(sorted.map(s => s.data.category))];
             </div>
           </div>
           <div class="admin-edit-link hidden absolute top-3 right-3 flex items-center gap-2 z-10">
-            <label
-              class="visibility-toggle relative inline-flex items-center cursor-pointer"
-              onclick="event.preventDefault(); event.stopPropagation();"
+            <button
+              type="button"
+              class="visibility-btn w-8 h-4 rounded-full relative transition-colors"
               data-seminar-id={seminar.id}
+              style="background: var(--color-primary);"
             >
-              <input type="checkbox" class="sr-only peer" checked
-                onchange="event.stopPropagation(); toggleVisibility(this.parentElement.dataset.seminarId, this.checked)"
-              />
-              <div class="w-8 h-4 bg-[var(--color-border)] peer-checked:bg-[var(--color-primary)] rounded-full transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-3 after:h-3 after:bg-white after:rounded-full after:transition-transform peer-checked:after:translate-x-4"></div>
-            </label>
-            <span
+              <span class="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform" style="transform: translateX(16px);"></span>
+            </button>
+            <button
+              type="button"
+              class="edit-btn px-2 py-1 rounded-lg text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 transition-colors cursor-pointer"
               data-edit-url={`https://github.com/xmin-02/seminar/edit/main/src/content/seminars/${seminar.id}.md`}
-              class="px-2 py-1 rounded-lg text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 transition-colors cursor-pointer"
-              onclick="event.preventDefault(); event.stopPropagation(); window.open(this.dataset.editUrl, '_blank')"
             >
               Edit
-            </span>
+            </button>
           </div>
         </a>
       ))}

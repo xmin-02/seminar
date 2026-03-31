@@ -158,14 +158,21 @@
       const id = card.dataset.itemId;
       const isHidden = hidden.includes(id);
       if (isAdmin) {
-        // Admin sees all, but hidden ones are dimmed
         card.style.display = '';
         card.style.opacity = isHidden ? '0.4' : '1';
-        // Sync toggle state
-        const toggle = card.querySelector('.visibility-toggle input');
-        if (toggle) toggle.checked = !isHidden;
+        // Sync toggle button UI
+        const btn = card.querySelector('.visibility-btn');
+        if (btn) {
+          const dot = btn.querySelector('span');
+          if (isHidden) {
+            btn.style.background = 'var(--color-border)';
+            dot.style.transform = 'translateX(0)';
+          } else {
+            btn.style.background = 'var(--color-primary)';
+            dot.style.transform = 'translateX(16px)';
+          }
+        }
       } else {
-        // Non-admin: hide hidden seminars
         card.style.display = isHidden ? 'none' : '';
         card.style.opacity = '1';
       }
@@ -424,6 +431,27 @@
 
   // Load saved order on page load (for all visitors)
   applyOrder(loadOrderFromStorage());
+
+  // Visibility toggle button handlers
+  document.querySelectorAll('.visibility-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const id = btn.dataset.seminarId;
+      const hidden = getHiddenSeminars();
+      const isCurrentlyHidden = hidden.includes(id);
+      toggleVisibility(id, isCurrentlyHidden); // flip: if hidden, make visible
+    });
+  });
+
+  // Edit button handlers
+  document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      window.open(btn.dataset.editUrl, '_blank');
+    });
+  });
 
   // Apply visibility for non-admin visitors on page load
   if (!savedSession || savedSession !== ADMIN_HASH) {
