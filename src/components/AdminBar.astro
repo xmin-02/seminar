@@ -141,7 +141,48 @@
     document.querySelectorAll('.admin-edit-link').forEach(el => {
       el.classList.toggle('hidden', !isAdmin);
     });
+    // Apply visibility state
+    applyVisibility(isAdmin);
   }
+
+  // Visibility toggle functions
+  function getHiddenSeminars() {
+    try {
+      return JSON.parse(localStorage.getItem('hidden_seminars') || '[]');
+    } catch { return []; }
+  }
+
+  function applyVisibility(isAdmin) {
+    const hidden = getHiddenSeminars();
+    document.querySelectorAll('[data-sortable][data-item-id]').forEach(card => {
+      const id = card.dataset.itemId;
+      const isHidden = hidden.includes(id);
+      if (isAdmin) {
+        // Admin sees all, but hidden ones are dimmed
+        card.style.display = '';
+        card.style.opacity = isHidden ? '0.4' : '1';
+        // Sync toggle state
+        const toggle = card.querySelector('.visibility-toggle input');
+        if (toggle) toggle.checked = !isHidden;
+      } else {
+        // Non-admin: hide hidden seminars
+        card.style.display = isHidden ? 'none' : '';
+        card.style.opacity = '1';
+      }
+    });
+  }
+
+  window.toggleVisibility = function(seminarId, isVisible) {
+    const hidden = getHiddenSeminars();
+    if (isVisible) {
+      const idx = hidden.indexOf(seminarId);
+      if (idx !== -1) hidden.splice(idx, 1);
+    } else {
+      if (!hidden.includes(seminarId)) hidden.push(seminarId);
+    }
+    localStorage.setItem('hidden_seminars', JSON.stringify(hidden));
+    applyVisibility(true);
+  };
 
   // Check saved session
   const savedSession = localStorage.getItem('admin_session');
@@ -383,4 +424,9 @@
 
   // Load saved order on page load (for all visitors)
   applyOrder(loadOrderFromStorage());
+
+  // Apply visibility for non-admin visitors on page load
+  if (!savedSession || savedSession !== ADMIN_HASH) {
+    applyVisibility(false);
+  }
 </script>
