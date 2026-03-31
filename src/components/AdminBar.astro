@@ -146,36 +146,34 @@
     applyVisibility(isAdmin);
   }
 
-  // Visibility state — in-memory cache populated from API on load
-  let _hiddenSeminars = null;
+  // Visibility state — stores VISIBLE seminar IDs (default = all hidden)
+  let _visibleSeminars = null;
 
-  function getHiddenSeminars() {
-    if (_hiddenSeminars !== null) return _hiddenSeminars;
-    // Fallback to localStorage while API hasn't responded yet
+  function getVisibleSeminars() {
+    if (_visibleSeminars !== null) return _visibleSeminars;
     try {
-      return JSON.parse(localStorage.getItem('hidden_seminars') || '[]');
+      return JSON.parse(localStorage.getItem('visible_seminars') || '[]');
     } catch { return []; }
   }
 
-  async function fetchHiddenSeminarsFromAPI() {
+  async function fetchVisibleSeminarsFromAPI() {
     try {
       const res = await fetch(`${API_BASE}/visibility`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
-          _hiddenSeminars = data;
-          localStorage.setItem('hidden_seminars', JSON.stringify(data));
+          _visibleSeminars = data;
+          localStorage.setItem('visible_seminars', JSON.stringify(data));
           return data;
         }
       }
     } catch {}
-    // Fall back to localStorage on network error
     try {
-      return JSON.parse(localStorage.getItem('hidden_seminars') || '[]');
+      return JSON.parse(localStorage.getItem('visible_seminars') || '[]');
     } catch { return []; }
   }
 
-  async function saveHiddenSeminarsToAPI(hidden) {
+  async function saveVisibleSeminarsToAPI(visible) {
     try {
       await fetch(`${API_BASE}/visibility`, {
         method: 'POST',
@@ -183,51 +181,49 @@
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${ADMIN_HASH}`,
         },
-        body: JSON.stringify(hidden),
+        body: JSON.stringify(visible),
       });
     } catch {}
-    // Always keep localStorage in sync as fallback
-    localStorage.setItem('hidden_seminars', JSON.stringify(hidden));
+    localStorage.setItem('visible_seminars', JSON.stringify(visible));
   }
 
   function applyVisibility(isAdmin) {
-    const hidden = getHiddenSeminars();
+    const visible = getVisibleSeminars();
     document.querySelectorAll('[data-sortable][data-item-id]').forEach(card => {
       const id = card.dataset.itemId;
-      const isHidden = hidden.includes(id);
+      const isVisible = visible.includes(id);
       if (isAdmin) {
         card.style.display = '';
-        card.style.opacity = isHidden ? '0.4' : '1';
-        // Sync toggle button UI
+        card.style.opacity = isVisible ? '1' : '0.4';
         const btn = card.querySelector('.visibility-btn');
         if (btn) {
           const dot = btn.querySelector('span');
-          if (isHidden) {
-            btn.style.background = 'var(--color-border)';
-            dot.style.transform = 'translateX(0)';
-          } else {
+          if (isVisible) {
             btn.style.background = 'var(--color-primary)';
             dot.style.transform = 'translateX(16px)';
+          } else {
+            btn.style.background = 'var(--color-border)';
+            dot.style.transform = 'translateX(0)';
           }
         }
       } else {
-        card.style.display = isHidden ? 'none' : '';
+        card.style.display = isVisible ? '' : 'none';
         card.style.opacity = '1';
       }
     });
   }
 
-  window.toggleVisibility = async function(seminarId, isVisible) {
-    const hidden = getHiddenSeminars();
-    if (isVisible) {
-      const idx = hidden.indexOf(seminarId);
-      if (idx !== -1) hidden.splice(idx, 1);
+  window.toggleVisibility = async function(seminarId, makeVisible) {
+    const visible = getVisibleSeminars();
+    if (makeVisible) {
+      if (!visible.includes(seminarId)) visible.push(seminarId);
     } else {
-      if (!hidden.includes(seminarId)) hidden.push(seminarId);
+      const idx = visible.indexOf(seminarId);
+      if (idx !== -1) visible.splice(idx, 1);
     }
-    _hiddenSeminars = hidden;
+    _visibleSeminars = visible;
     applyVisibility(true);
-    await saveHiddenSeminarsToAPI(hidden);
+    await saveVisibleSeminarsToAPI(visible);
   };
 
   // Check saved session
@@ -235,8 +231,8 @@
   const isAdminOnLoad = savedSession === ADMIN_HASH;
 
   // Fetch visibility from API for ALL visitors on page load
-  fetchHiddenSeminarsFromAPI().then((hidden) => {
-    _hiddenSeminars = hidden;
+  fetchVisibleSeminarsFromAPI().then((visible) => {
+    _visibleSeminars = visible;
     applyVisibility(isAdminOnLoad);
   });
 

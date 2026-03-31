@@ -65,9 +65,9 @@ const categories = [...new Set(sorted.map(s => s.data.category))];
               type="button"
               class="visibility-btn w-8 h-4 rounded-full relative transition-colors"
               data-seminar-id={seminar.id}
-              style="background: var(--color-primary);"
+              style="background: var(--color-border);"
             >
-              <span class="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform" style="transform: translateX(16px);"></span>
+              <span class="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform" style="transform: translateX(0);"></span>
             </button>
             <button
               type="button"
