@@ -481,9 +481,9 @@
       e.preventDefault();
       e.stopPropagation();
       const id = btn.dataset.seminarId;
-      const hidden = getHiddenSeminars();
-      const isCurrentlyHidden = hidden.includes(id);
-      toggleVisibility(id, isCurrentlyHidden); // flip: if hidden, make visible
+      const visible = getVisibleSeminars();
+      const isCurrentlyVisible = visible.includes(id);
+      toggleVisibility(id, !isCurrentlyVisible); // flip: toggle
     });
   });
 
