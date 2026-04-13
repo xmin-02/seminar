@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
+    "build": "echo 'no build step'",
     "deploy": "wrangler deploy"
   },
   "devDependencies": {
