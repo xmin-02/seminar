@@ -1,0 +1,7 @@
+name = "seminar-api"
+main = "src/index.js"
+compatibility_date = "2024-10-01"
+
+[[kv_namespaces]]
+binding = "SEMINAR_STATE"
+id = "a1dc0254681d4c459539ee796536159f"
