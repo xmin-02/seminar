@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 코드, 컨테이너에서 돌려라</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #0a0a0a;
+    color: #e0e0e0;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  .slide {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    padding: 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide.active { display: flex; flex-direction: column; justify-content: center; }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -30%;
+    width: 800px;
+    height: 800px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .slide-title {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #0a0a0a 0%, #0f172a 100%);
+  }
+
+  .slide-title h1 {
+    font-size: 4.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #60a5fa, #22d3ee, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 20px;
+    letter-spacing: -2px;
+  }
+
+  .slide-title .subtitle {
+    font-size: 1.6rem;
+    color: #9ca3af;
+    font-weight: 300;
+    margin-bottom: 50px;
+  }
+
+  .slide-title .meta {
+    font-size: 1rem;
+    color: #6b7280;
+  }
+
+  h2 {
+    font-size: 2.6rem;
+    font-weight: 700;
+    margin-bottom: 40px;
+    color: #f3f4f6;
+    position: relative;
+    padding-bottom: 15px;
+  }
+
+  h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, #60a5fa, #22d3ee);
+    border-radius: 2px;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    color: #7dd3fc;
+    margin-bottom: 15px;
+    font-weight: 500;
+  }
+
+  p, li {
+    font-size: 1.35rem;
+    line-height: 1.8;
+    color: #d1d5db;
+  }
+
+  ul { list-style: none; padding: 0; }
+
+  ul li {
+    padding: 10px 0 10px 35px;
+    position: relative;
+  }
+
+  ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #60a5fa, #22d3ee);
+  }
+
+  .highlight {
+    color: #7dd3fc;
+    font-weight: 500;
+  }
+
+  .quote-box {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(34, 211, 238, 0.05));
+    border-left: 4px solid #60a5fa;
+    padding: 30px 35px;
+    border-radius: 0 12px 12px 0;
+    margin: 20px 0;
+    font-size: 1.4rem;
+    font-style: italic;
+    color: #bae6fd;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin: 5px 8px 5px 0;
+  }
+
+  .tag-blue { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+  .tag-cyan { background: rgba(34, 211, 238, 0.15); color: #67e8f9; border: 1px solid rgba(34, 211, 238, 0.3); }
+  .tag-green { background: rgba(52, 211, 153, 0.15); color: #86efac; border: 1px solid rgba(52, 211, 153, 0.3); }
+  .tag-red { background: rgba(248, 113, 113, 0.15); color: #fca5a5; border: 1px solid rgba(248, 113, 113, 0.3); }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    margin-top: 10px;
+  }
+
+  .card {
+    background: linear-gradient(135deg, rgba(15, 30, 50, 0.8), rgba(10, 20, 40, 0.6));
+    border: 1px solid #1e3a5f;
+    border-radius: 16px;
+    padding: 28px;
+    transition: transform 0.2s;
+  }
+
+  .card-num {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #60a5fa, #22d3ee);
+    color: #0a0a0a;
+    font-weight: 700;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+  }
+
+  .card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+
+  .card p {
+    font-size: 1rem;
+    color: #9ca3af;
+    line-height: 1.6;
+  }
+
+  .card code {
+    color: #7dd3fc;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9rem;
+    background: #0c1628;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .danger-box {
+    background: rgba(248, 113, 113, 0.08);
+    border-left: 4px solid #f87171;
+    padding: 25px 30px;
+    border-radius: 0 12px 12px 0;
+    margin: 15px 0;
+  }
+
+  .safe-box {
+    background: rgba(52, 211, 153, 0.08);
+    border-left: 4px solid #34d399;
+    padding: 25px 30px;
+    border-radius: 0 12px 12px 0;
+    margin: 15px 0;
+  }
+
+  .nav {
+    position: fixed;
+    bottom: 30px;
+    right: 40px;
+    display: flex;
+    gap: 12px;
+    z-index: 100;
+  }
+
+  .nav button {
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    color: #93c5fd;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .nav button:hover { background: rgba(59, 130, 246, 0.4); }
+
+  .slide-counter {
+    position: fixed;
+    bottom: 35px;
+    left: 40px;
+    color: #4b5563;
+    font-size: 0.95rem;
+    z-index: 100;
+  }
+
+  .progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #60a5fa, #22d3ee, #34d399);
+    transition: width 0.3s;
+    z-index: 100;
+  }
+
+  .demo-terminal {
+    background: #0c0c14;
+    border: 1px solid #1e3a5f;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 15px 0;
+  }
+
+  .terminal-header {
+    background: #0f172a;
+    padding: 10px 16px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+  .terminal-dot.red { background: #f87171; }
+  .terminal-dot.yellow { background: #fbbf24; }
+  .terminal-dot.green { background: #4ade80; }
+
+  .terminal-body {
+    padding: 22px 26px;
+    font-family: 'Fira Code', monospace;
+    font-size: 1.05rem;
+    line-height: 1.9;
+    color: #cdd6f4;
+  }
+
+  .prompt { color: #a6e3a1; }
+  .comment { color: #6c7086; }
+  .cmd { color: #89b4fa; }
+  .flag { color: #f9e2af; }
+  .danger { color: #f38ba8; }
+  .safe { color: #a6e3a1; }
+
+  .end-slide h2 {
+    font-size: 3rem;
+    text-align: center;
+  }
+  .end-slide h2::after {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .big-question {
+    font-size: 3.5rem;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.3;
+    color: #f3f4f6;
+  }
+
+  .big-question .em {
+    background: linear-gradient(135deg, #60a5fa, #22d3ee);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .one-word {
+    font-size: 8rem;
+    font-weight: 900;
+    text-align: center;
+    background: linear-gradient(135deg, #60a5fa, #22d3ee, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<!-- Slide 1: Title -->
+<div class="slide slide-title active" id="slide-1">
+  <h1>AI 코드,<br>컨테이너에서 돌려라</h1>
+  <p class="subtitle">Why You Should Learn Docker — in 10 minutes</p>
+  <div style="display:flex; gap:12px; justify-content:center; margin-bottom: 40px;">
+    <span class="tag tag-blue">Docker</span>
+    <span class="tag tag-red">AI Safety</span>
+    <span class="tag tag-cyan">Intro</span>
+  </div>
+  <p class="meta">2026.04.20</p>
+</div>
+
+<!-- Slide 2: Recap -->
+<div class="slide" id="slide-2">
+  <h2>지난 이야기</h2>
+  <div class="two-col">
+    <div class="col">
+      <div class="demo-terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+        </div>
+        <div class="terminal-body">
+          <span class="comment"># 사용자 질문</span><br>
+          <span class="cmd">You:</span> <span style="color:#cdd6f4">디스크 정리 어떻게 해?</span><br>
+          <br>
+          <span class="comment"># AI 응답</span><br>
+          <span style="color:#c084fc">AI:</span> <span style="color:#cdd6f4">이 명령어로 정리하세요:</span><br>
+          <br>
+          <span class="danger">sudo rm -rf /</span><br>
+          <br>
+          <span class="danger">&#9888; 시스템 전체 삭제</span>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="quote-box">
+        AI는 <span style="color:#f9a8d4">동작하는 답</span>을 준다.<br>
+        하지만 <span style="color:#f87171">안전한 답</span>은 아닐 수 있다.
+      </div>
+      <ul style="margin-top: 20px;">
+        <li><code style="color:#f38ba8; font-family:'Fira Code',monospace;">rm -rf /</code>, <code style="color:#f38ba8; font-family:'Fira Code',monospace;">chmod 777</code>, <code style="color:#f38ba8; font-family:'Fira Code',monospace;">curl | sudo bash</code></li>
+        <li>한 줄이 <span class="highlight">노트북을 날릴 수 있다</span></li>
+        <li>그럼 <span style="color:#7dd3fc">어떻게 실험해 봐야 할까?</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3: The question -->
+<div class="slide" id="slide-3">
+  <div class="big-question">
+    AI가 준 명령어,<br>
+    <span class="em">어디서 돌려야 안전해?</span>
+  </div>
+</div>
+
+<!-- Slide 4: The answer -->
+<div class="slide" id="slide-4">
+  <div class="one-word">Docker</div>
+  <p style="text-align:center; margin-top: 40px; font-size: 1.5rem; color: #9ca3af;">
+    일회용 리눅스를 <span class="highlight">한 줄로</span> 띄운다
+  </p>
+</div>
+
+<!-- Slide 5: Live demo -->
+<div class="slide" id="slide-5">
+  <h2>라이브 데모</h2>
+  <div class="two-col">
+    <div class="col">
+      <div class="demo-terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+        </div>
+        <div class="terminal-body">
+          <span class="comment"># 일회용 Ubuntu 한 대 띄우기</span><br>
+          <span class="prompt">$</span> <span class="cmd">docker run -it --rm ubuntu bash</span><br>
+          <br>
+          <span class="comment"># 컨테이너 안</span><br>
+          <span style="color:#f38ba8">root@abc:/#</span> <span class="danger">rm -rf /*</span><br>
+          <span style="color:#f38ba8">root@abc:/#</span> <span class="cmd">ls</span><br>
+          <span style="color:#6c7086">(박살남)</span><br>
+          <span style="color:#f38ba8">root@abc:/#</span> <span class="cmd">exit</span><br>
+          <br>
+          <span class="comment"># 호스트로 돌아옴</span><br>
+          <span class="prompt">$</span> <span class="safe">ls ~ &nbsp;&nbsp;# 멀쩡 ✓</span>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="safe-box">
+        <p style="font-size: 1.15rem; color: #86efac; margin-bottom: 12px;"><b>무슨 일이 일어났나</b></p>
+        <ul>
+          <li style="font-size: 1.1rem;">컨테이너 = <span class="highlight">격리된 일회용 방</span></li>
+          <li style="font-size: 1.1rem;"><code style="color:#7dd3fc; font-family:'Fira Code',monospace;">--rm</code> : 종료 즉시 폐기</li>
+          <li style="font-size: 1.1rem;">호스트 파일은 <span style="color:#86efac">하나도 안 다침</span></li>
+        </ul>
+      </div>
+      <div class="quote-box" style="margin-top: 20px;">
+        "위험한 건 컨테이너에서 실험하고,<br>
+        <span style="color:#7dd3fc">결과만 본다</span>"
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 6: When you need Docker -->
+<div class="slide" id="slide-6">
+  <h2>도커가 필요한 순간들</h2>
+  <div class="card-grid">
+    <div class="card">
+      <span class="card-num">1</span>
+      <h3>AI가 준 수상한 스크립트</h3>
+      <p>블로그에서 긁어온 <code>install.sh</code>, AI가 뱉은 한 줄 — 일단 컨테이너에서 돌려보고 결과만 가져온다</p>
+    </div>
+    <div class="card">
+      <span class="card-num">2</span>
+      <h3>로컬에서 AI 모델 돌리기</h3>
+      <p>Ollama, Stable Diffusion, Whisper, Hugging Face 모델 — 대부분 <code>docker run</code> 한 줄로 끝</p>
+    </div>
+    <div class="card">
+      <span class="card-num">3</span>
+      <h3>AI 에이전트 격리</h3>
+      <p>Cursor, Claude Code가 당신 호스트 쉘을 직접 만지면 위험 — 컨테이너 안에 가둬야 안전</p>
+    </div>
+    <div class="card">
+      <span class="card-num">4</span>
+      <h3>"내 컴에선 되는데요"</h3>
+      <p>파이썬 버전, 라이브러리 충돌 — 실행 환경을 파일 하나로 팀원과 공유</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 7: Summary -->
+<div class="slide end-slide" id="slide-7">
+  <h2>정리</h2>
+  <div style="max-width: 800px; margin: 0 auto;">
+    <ul style="margin-bottom: 40px;">
+      <li>지난 세미나: AI는 <span style="color:#f87171">위험한 명령어</span>를 줄 수 있다</li>
+      <li>오늘: 그래서 <span class="highlight">컨테이너에서 돌려야 한다</span></li>
+      <li>도커 = <span class="highlight">일회용 리눅스를 한 줄로</span> 띄우는 도구</li>
+      <li>AI 모델 · AI 에이전트 · 팀 협업 — <span class="highlight">전부 도커 위에서</span> 돌아간다</li>
+      <li>다음 수업: 도커를 실제로 다루는 법</li>
+    </ul>
+    <div class="quote-box" style="text-align: center; font-size: 1.6rem;">
+      AI는 도구, 판단은 내가,<br>
+      <span style="color:#7dd3fc">실행은 컨테이너에서.</span>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 8: Q&A -->
+<div class="slide end-slide" id="slide-8">
+  <div style="text-align:center;">
+    <div style="font-size: 4rem; margin-bottom: 20px; background: linear-gradient(135deg, #60a5fa, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900;">Q &amp; A</div>
+    <p style="color: #6b7280; font-size: 1.3rem;">감사합니다</p>
+  </div>
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <button onclick="prevSlide()">&#8592; Prev</button>
+  <button onclick="nextSlide()">Next &#8594;</button>
+</div>
+<div class="slide-counter" id="counter">1 / 8</div>
+
+<script>
+  let current = 1;
+  const total = 8;
+
+  function showSlide(n) {
+    document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+    document.getElementById(`slide-${n}`).classList.add('active');
+    document.getElementById('counter').textContent = `${n} / ${total}`;
+    document.getElementById('progress').style.width = `${(n / total) * 100}%`;
+  }
+
+  function nextSlide() { if (current < total) { current++; showSlide(current); } }
+  function prevSlide() { if (current > 1) { current--; showSlide(current); } }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); nextSlide(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); prevSlide(); }
+  });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+  document.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) nextSlide();
+    if (diff < -50) prevSlide();
+  });
+</script>
+
+</body>
+</html>
