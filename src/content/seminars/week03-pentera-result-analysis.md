@@ -6,7 +6,7 @@ tags: ["Pentera Surface", "Attack Surface", "CVE", "리포팅"]
 description: "실제 수행된 Pentera Surface Report를 따라 읽으며 Attractions, Vulnerabilities, Achievements의 차이와 조치 우선순위 잡는 법을 학습합니다."
 ---
 
-> [발표 자료 다운로드 (PPT)](/slides/Week03_Pentera_Surface_리포트_읽기.pptx)
+> [슬라이드 보기 (프레젠테이션 모드)](/slides/week03-pentera-surface.html)
 
 > **공개 안내**: 본 자료는 한 교내 조직에 대해 실제로 수행된 Pentera Surface Report를 학습용으로 정리한 것입니다. 모든 IP·호스트명·서브도메인은 마스킹 처리되었으며, 본문에 포함된 취약점 항목도 교육적 의미가 큰 일부만 발췌했습니다. 실제 자산 식별이 가능한 정보는 포함되지 않았습니다.
 

