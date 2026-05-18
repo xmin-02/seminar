@@ -1,5 +1,5 @@
 ---
-title: "Week 03 — Pentera Surface 리포트 읽기 (실제 사례)"
+title: "Pentera Surface 리포트 읽기 (실제 사례)"
 date: "2026-05-18"
 category: "Pentera"
 tags: ["Pentera Surface", "Attack Surface", "CVE", "리포팅"]
